@@ -25,11 +25,6 @@ table 51102 "Query Formula Filter TPE"
         {
             DataClassification = SystemMetadata;
             ToolTip = 'Specifies the filter type.';
-
-            trigger OnValidate()
-            begin
-                UpdateValueCaptions();
-            end;
         }
         field(10; "Value 1"; Text[250])
         {
@@ -51,57 +46,9 @@ table 51102 "Query Formula Filter TPE"
         }
     }
 
-    var
-        Value1CaptionTxt: Text;
-        Value2CaptionTxt: Text;
-
-    local procedure UpdateValueCaptions()
+    trigger OnInsert()
     begin
-        case "Filter Type" of
-            "Filter Type"::"Less Than":
-                begin
-                    Value1CaptionTxt := 'Maximum Value';
-                    Value2CaptionTxt := '';
-                end;
-            "Filter Type"::"Less Than or Equal":
-                begin
-                    Value1CaptionTxt := 'Maximum Value';
-                    Value2CaptionTxt := '';
-                end;
-            "Filter Type"::"Greater Than":
-                begin
-                    Value1CaptionTxt := 'Minimum Value';
-                    Value2CaptionTxt := '';
-                end;
-            "Filter Type"::"Greater Than or Equal":
-                begin
-                    Value1CaptionTxt := 'Minimum Value';
-                    Value2CaptionTxt := '';
-                end;
-            "Filter Type"::Between:
-                begin
-                    Value1CaptionTxt := 'From Value';
-                    Value2CaptionTxt := 'To Value';
-                end;
-            "Filter Type"::Filter:
-                begin
-                    Value1CaptionTxt := 'Filter Expression';
-                    Value2CaptionTxt := '';
-                end;
-        end;
-    end;
-
-    procedure GetValue1Caption(): Text
-    begin
-        if Value1CaptionTxt = '' then
-            UpdateValueCaptions();
-        exit(Value1CaptionTxt);
-    end;
-
-    procedure GetValue2Caption(): Text
-    begin
-        if Value2CaptionTxt = '' then
-            UpdateValueCaptions();
-        exit(Value2CaptionTxt);
+        if "Field ID" = 0 then
+            Error('Field ID must not be 0. Please select a valid field before saving.');
     end;
 }

@@ -65,20 +65,14 @@ page 51104 "Query Formula Filter Sub TPE"
                 field("Value 1"; Rec."Value 1")
                 {
                     ApplicationArea = All;
-                    Caption = 'Value 1';
-
-                    trigger OnAssistEdit()
-                    var
-                        CaptionTxt: Text;
-                    begin
-                        CaptionTxt := Rec.GetValue1Caption();
-                    end;
+                    CaptionClass = this.GetValue1Caption();
                 }
                 field("Value 2"; Rec."Value 2")
                 {
                     ApplicationArea = All;
-                    Caption = 'Value 2';
-                    Visible = Value2Visible;
+                    Caption = '';
+                    CaptionClass = this.GetValue2Caption();
+                    Enabled = this.Value2CaptionTxt <> '';
                 }
             }
         }
@@ -86,21 +80,60 @@ page 51104 "Query Formula Filter Sub TPE"
 
     var
         gParentRecord: Record "Query Formula TPE";
-        Value2Visible: Boolean;
+        Value1CaptionTxt: Text;
+        Value2CaptionTxt: Text;
 
-    trigger OnAfterGetRecord()
+    trigger OnOpenPage()
     begin
-        UpdateVisibility();
+        this.UpdateValueCaptions();
+    end;
+
+    trigger OnAfterGetCurrRecord()
+    begin
+        this.UpdateValueCaptions();
     end;
 
     trigger OnNewRecord(BelowxRec: Boolean)
     begin
-        UpdateVisibility();
+        this.UpdateValueCaptions();
     end;
 
-    local procedure UpdateVisibility()
+    local procedure UpdateValueCaptions()
     begin
-        Value2Visible := Rec."Filter Type" = Rec."Filter Type"::Between;
+        case Rec."Filter Type" of
+            Rec."Filter Type"::"Less Than",
+            Rec."Filter Type"::"Less Than or Equal":
+                begin
+                    this.Value1CaptionTxt := 'Maximum Value';
+                    this.Value2CaptionTxt := '';
+                end;
+            Rec."Filter Type"::"Greater Than",
+            Rec."Filter Type"::"Greater Than or Equal":
+                begin
+                    this.Value1CaptionTxt := 'Minimum Value';
+                    this.Value2CaptionTxt := '';
+                end;
+            Rec."Filter Type"::Between:
+                begin
+                    this.Value1CaptionTxt := 'From Value';
+                    this.Value2CaptionTxt := 'To Value';
+                end;
+            Rec."Filter Type"::Filter:
+                begin
+                    this.Value1CaptionTxt := 'Filter Expression';
+                    this.Value2CaptionTxt := '';
+                end;
+        end;
+    end;
+
+    local procedure GetValue1Caption(): Text
+    begin
+        exit(this.Value1CaptionTxt);
+    end;
+
+    local procedure GetValue2Caption(): Text
+    begin
+        exit(this.Value2CaptionTxt);
     end;
 
     procedure SetParentRecord(ParentRecord: Record "Query Formula TPE")
