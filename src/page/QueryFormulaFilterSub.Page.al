@@ -15,39 +15,6 @@ page 51104 "Query Formula Filter Sub TPE"
                 field("Field ID"; Rec."Field ID")
                 {
                     ApplicationArea = All;
-
-                    trigger OnValidate()
-                    var
-                        Field: Record Field;
-                    begin
-                        if Rec."Field ID" = 0 then begin
-                            Rec.Validate("Field Name", '');
-                            exit;
-                        end;
-                        if Field.Get(gParentRecord."Table ID", Rec."Field ID") then
-                            Rec.Validate("Field Name", Field.FieldName)
-                        else
-                            Error('Field ID %1 is not valid for Table ID %2', Rec."Field ID", gParentRecord."Table ID");
-                    end;
-
-                    trigger OnLookup(var Text: Text): Boolean
-                    var
-                        Field: Record Field;
-                        FieldsLookup: Page "Fields Lookup";
-                    begin
-                        if this.gParentRecord."Table ID" <> 0 then begin
-                            Field.Reset();
-                            Field.SetRange(TableNo, this.gParentRecord."Table ID");
-                            FieldsLookup.SetTableView(Field);
-                            FieldsLookup.LookupMode(true);
-
-                            if FieldsLookup.RunModal() = Action::LookupOK then begin
-                                FieldsLookup.GetRecord(Field);
-                                Rec.Validate("Field ID", Field."No.");
-                                Rec.Validate("Field Name", Field.FieldName)
-                            end;
-                        end;
-                    end;
                 }
                 field("Field Name"; Rec."Field Name")
                 {
@@ -62,16 +29,28 @@ page 51104 "Query Formula Filter Sub TPE"
                         CurrPage.Update(true);
                     end;
                 }
+                field("Value 1 Parameter"; Rec."Value 1 Parameter")
+                {
+                    ApplicationArea = All;
+                    CaptionClass = this.GetValue1Caption(true);
+                }
                 field("Value 1"; Rec."Value 1")
                 {
                     ApplicationArea = All;
-                    CaptionClass = this.GetValue1Caption();
+                    CaptionClass = this.GetValue1Caption(false);
+                }
+                field("Value 2 Parameter"; Rec."Value 2 Parameter")
+                {
+                    ApplicationArea = All;
+                    Caption = '';
+                    CaptionClass = this.GetValue2Caption(true);
+                    Enabled = this.Value2CaptionTxt <> '';
                 }
                 field("Value 2"; Rec."Value 2")
                 {
                     ApplicationArea = All;
                     Caption = '';
-                    CaptionClass = this.GetValue2Caption();
+                    CaptionClass = this.GetValue2Caption(false);
                     Enabled = this.Value2CaptionTxt <> '';
                 }
             }
@@ -79,7 +58,6 @@ page 51104 "Query Formula Filter Sub TPE"
     }
 
     var
-        gParentRecord: Record "Query Formula TPE";
         Value1CaptionTxt: Text;
         Value2CaptionTxt: Text;
 
@@ -126,19 +104,19 @@ page 51104 "Query Formula Filter Sub TPE"
         end;
     end;
 
-    local procedure GetValue1Caption(): Text
+    local procedure GetValue1Caption(ParamCaption: Boolean): Text
     begin
-        exit(this.Value1CaptionTxt);
+        if ParamCaption and (this.Value1CaptionTxt <> '') then
+            exit('Use Parameter for ' + this.Value1CaptionTxt)
+        else
+            exit(this.Value1CaptionTxt);
     end;
 
-    local procedure GetValue2Caption(): Text
+    local procedure GetValue2Caption(ParamCaption: Boolean): Text
     begin
-        exit(this.Value2CaptionTxt);
+        if ParamCaption and (this.Value2CaptionTxt <> '') then
+            exit('Use Parameter for ' + this.Value2CaptionTxt)
+        else
+            exit(this.Value2CaptionTxt);
     end;
-
-    procedure SetParentRecord(ParentRecord: Record "Query Formula TPE")
-    begin
-        this.gParentRecord := ParentRecord;
-    end;
-
 }

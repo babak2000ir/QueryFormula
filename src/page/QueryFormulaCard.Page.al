@@ -64,19 +64,4 @@ page 51101 "Query Formula Card TPE"
             }
         }
     }
-
-    trigger OnAfterGetCurrRecord()
-    begin
-        CurrPage.Filters.Page.SetParentRecord(Rec);
-    end;
-
-    trigger OnModifyRecord(): Boolean
-    begin
-        CurrPage.Filters.Page.SetParentRecord(Rec);
-    end;
-
-    trigger OnInsertRecord(BelowxRec: Boolean): Boolean
-    begin
-        CurrPage.Filters.Page.SetParentRecord(Rec);
-    end;
 }
