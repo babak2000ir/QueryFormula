@@ -22,6 +22,12 @@ page 51101 "Query Formula Card TPE"
                     ApplicationArea = All;
                 }
             }
+            part(Parameters; "Query Formula Param Sub TPE")
+            {
+                ApplicationArea = All;
+                Caption = 'Parameters';
+                SubPageLink = "Query Formula Code" = field(Code);
+            }
             group("Table")
             {
                 Caption = 'Table';
@@ -55,12 +61,6 @@ page 51101 "Query Formula Card TPE"
                 {
                     ApplicationArea = All;
                 }
-            }
-            part(Parameters; "Query Formula Param Sub TPE")
-            {
-                ApplicationArea = All;
-                Caption = 'Parameters';
-                SubPageLink = "Query Formula Code" = field(Code);
             }
         }
     }

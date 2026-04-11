@@ -51,6 +51,34 @@ table 51100 "Query Formula TPE"
             DataClassification = SystemMetadata;
             TableRelation = Field."No." where(TableNo = field("Table ID"));
             ToolTip = 'Specifies the field ID.';
+
+            trigger OnValidate()
+            var
+                Field: Record Field;
+            begin
+                if (Rec."Field ID" <> 0) and not Field.Get(Rec."Table ID", Rec."Field ID") then
+                    Error('Field ID %1 is not valid for Table ID %2', Rec."Field ID", Rec."Table ID");
+
+                Rec.CalcFields("Field Name");
+            end;
+
+            trigger OnLookup()
+            var
+                Field: Record Field;
+                FieldsLookup: Page "Fields Lookup";
+            begin
+                if Rec."Table ID" <> 0 then begin
+                    Field.Reset();
+                    Field.SetRange(TableNo, Rec."Table ID");
+                    FieldsLookup.SetTableView(Field);
+                    FieldsLookup.LookupMode(true);
+
+                    if FieldsLookup.RunModal() = Action::LookupOK then begin
+                        FieldsLookup.GetRecord(Field);
+                        Rec.Validate("Field ID", Field."No.");
+                    end;
+                end;
+            end;
         }
         field(41; "Field Name"; Text[250])
         {
