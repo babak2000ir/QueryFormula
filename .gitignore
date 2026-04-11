@@ -1,0 +1,7 @@
+# Business Central AL dependencies and build artifacts
+.alpackages/
+.snapshots/
+*.app
+
+# Snapshot debugging artifacts
+.snapshots/
