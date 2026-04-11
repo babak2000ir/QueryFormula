@@ -11,5 +11,8 @@ permissionset 51100 GenPermTPE
         tabledata "Query Formula Filter TPE" = RIMD,
         table "Query Formula Filter TPE" = X,
         page "Query Formula Filter Sub TPE" = X,
-        page "Query Formula Param FB TPE" = X;
+        page "Query Formula Param FB TPE" = X,
+        tabledata "Query Formula Execution TPE" = RIMD,
+        table "Query Formula Execution TPE" = X,
+        page "Query Formula Exec. List TPE" = X;
 }
