@@ -128,7 +128,7 @@ table 51102 "Query Formula Filter TPE"
         SpecialFormula: Record "Special Formula TPE";
         QueryFormula: Record "Query Formula TPE";
         Field: Record Field;
-        TempOptionLookupBuffer: Record "Option Lookup Buffer" temporary;
+        GeneralTableBuffer: Record "General Table Buffer TPE";
         QueryFormulaParamLookup: Page "Query Formula Param Lookup TPE";
         SpecialFormulaList: Page "Special Formula List TPE";
         DateTimeDialog: Page "Date-Time Dialog TPE";
@@ -187,13 +187,19 @@ table 51102 "Query Formula Filter TPE"
                                 GeneralTableLookup.LoadData(Field.RelationTableNo);
                                 GeneralTableLookup.Editable(false);
                                 if GeneralTableLookup.RunModal() = Action::LookupOK then begin
-                                    //Rec.Get(GeneralTableLookup.Rec."Entry No.");
-                                    //Value := GeneralTableLookup.Rec.Key1;
+                                    GeneralTableLookup.GetRecord(GeneralTableBuffer);
+                                    Value := GeneralTableBuffer.Field1;
                                 end;
                             end;
                         Field.Type::Option:
                             begin
-                                //TempOptionLookupBuffer.FillLookupBuffer("Option Lookup Type"::);
+                                GeneralTableLookup.LookupMode(true);
+                                GeneralTableLookup.LoadData(Field.OptionString);
+                                GeneralTableLookup.Editable(false);
+                                if GeneralTableLookup.RunModal() = Action::LookupOK then begin
+                                    GeneralTableLookup.GetRecord(GeneralTableBuffer);
+                                    Value := GeneralTableBuffer.Field2;
+                                end;
                             end;
                     end;
 

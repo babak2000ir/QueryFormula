@@ -83,7 +83,7 @@ page 51111 "General Table Lookup TPE"
                 trigger OnAction();
                 begin
                     pageIndex := 1;
-                    LoadPage();
+                    LoadPageForRecRef();
                 end;
             }
             action(Previous)
@@ -104,7 +104,7 @@ page 51111 "General Table Lookup TPE"
                         exit;
                     end;
                     pageIndex -= 1;
-                    LoadPage();
+                    LoadPageForRecRef();
                 end;
             }
             action("Next")
@@ -125,7 +125,7 @@ page 51111 "General Table Lookup TPE"
                         exit;
                     end;
                     PageIndex += 1;
-                    LoadPage();
+                    LoadPageForRecRef();
                 end;
             }
             action(Last)
@@ -141,7 +141,7 @@ page 51111 "General Table Lookup TPE"
                 trigger OnAction();
                 begin
                     PageIndex := NumOfPages;
-                    LoadPage();
+                    LoadPageForRecRef();
                 end;
             }
         }
@@ -170,16 +170,8 @@ page 51111 "General Table Lookup TPE"
     procedure LoadData(tableNo: Integer)
     begin
         Clear(Rec);
-        Field1Visiblity := false;
-        Field2Visiblity := false;
-        Field3Visiblity := false;
-        Field4Visiblity := false;
-        Field5Visiblity := false;
-        Field6Visiblity := false;
-        Field7Visiblity := false;
-        Field8Visiblity := false;
-        Field9Visiblity := false;
-        Field10Visiblity := false;
+        InitUI();
+
         PageIndex := 1;
         PerPage := 25;
 
@@ -190,6 +182,41 @@ page 51111 "General Table Lookup TPE"
         FieldCount := this.Math.Min(RecRefSource.FieldCount, 10);
         NumOfPages := (RecRefSource.Count() div PerPage) + 1;
 
+        SetUI();
+        LoadPageForRecRef();
+    end;
+
+    procedure LoadData(EnumOptions: Text[2047])
+    begin
+        Clear(Rec);
+        InitUI();
+
+        PageIndex := 1;
+        PerPage := 99;
+
+        FieldCount := 2;
+        NumOfPages := 1;
+
+        SetUI();
+        LoadPageForOption(EnumOptions);
+    end;
+
+    local procedure InitUI()
+    begin
+        Field1Visiblity := false;
+        Field2Visiblity := false;
+        Field3Visiblity := false;
+        Field4Visiblity := false;
+        Field5Visiblity := false;
+        Field6Visiblity := false;
+        Field7Visiblity := false;
+        Field8Visiblity := false;
+        Field9Visiblity := false;
+        Field10Visiblity := false;
+    end;
+
+    local procedure SetUI()
+    begin
         Field1Visiblity := true;
         Field2Visiblity := FieldCount >= 2;
         Field3Visiblity := FieldCount >= 3;
@@ -200,12 +227,9 @@ page 51111 "General Table Lookup TPE"
         Field8Visiblity := FieldCount >= 8;
         Field9Visiblity := FieldCount >= 9;
         Field10Visiblity := FieldCount >= 10;
-
-
-        LoadPage();
     end;
 
-    local procedure LoadPage()
+    local procedure LoadPageForRecRef()
     var
         RecRef: RecordRef;
         FieldRef: FieldRef;
@@ -239,5 +263,31 @@ page 51111 "General Table Lookup TPE"
 
             RecRef.Insert();
         until (RecRefSource.Next() = 0) or (Counter >= PerPage);
+    end;
+
+    local procedure LoadPageForOption(EnumOptions: Text[2047])
+    var
+        Counter: Integer;
+        EnumOptionsList: List of [Text];
+    begin
+        Counter := 1;
+        Clear(Rec);
+        Rec.DeleteAll();
+
+        if EnumOptions = '' then
+            exit;
+
+        EnumOptionsList := EnumOptions.Split(',');
+
+        if EnumOptionsList.Count() = 0 then
+            exit;
+
+        for Counter := 1 to EnumOptionsList.Count() do begin
+            Rec.Init();
+            Rec."Entry No." := Counter;
+            Rec.Field1 := Format(Counter - 1, 0, 9);
+            Rec.Field2 := CopyStr(EnumOptionsList.Get(Counter), 1, 250);
+            Rec.Insert();
+        end;
     end;
 }
