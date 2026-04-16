@@ -56,10 +56,12 @@ page 51101 "Query Formula Card TPE"
                 field("Field ID"; Rec."Field ID")
                 {
                     ApplicationArea = All;
+                    Visible = Rec."Query Type" <> Rec."Query Type"::Count;
                 }
                 field("Field Name"; Rec."Field Name")
                 {
                     ApplicationArea = All;
+                    Visible = Rec."Query Type" <> Rec."Query Type"::Count;
                 }
             }
         }
