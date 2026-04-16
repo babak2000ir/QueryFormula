@@ -2,16 +2,16 @@ codeunit 51102 "Query Formula Management TPE"
 {
     var
         gQueryExecutionLog: Record "Query Execution Log TPE" temporary;
-        gQueryFormulaParameter: List of [Dictionary of [Code[20], Text]];
+        gQueryFormulaParameters: Dictionary of [Code[20], Text];
 
     procedure SetLogger(var QueryExecutionLog: Record "Query Execution Log TPE" temporary)
     begin
         gQueryExecutionLog := QueryExecutionLog;
     end;
 
-    procedure SetParameters(QueryFormulaParameter: List of [Dictionary of [Code[20], Text]])
+    procedure SetParameters(QueryFormulaParameters: Dictionary of [Code[20], Text])
     begin
-        gQueryFormulaParameter := QueryFormulaParameter;
+        gQueryFormulaParameters := QueryFormulaParameters;
     end;
 
     procedure RunQuery(QueryFormulaCode: Code[20]) Result: Text
@@ -198,11 +198,8 @@ codeunit 51102 "Query Formula Management TPE"
     end;
 
     local procedure GetParameterValue(ParameterName: Code[20]; var ParameterValue: Text) Result: Boolean
-    var
-        Parameter: Dictionary of [Code[20], Text];
     begin
-        foreach Parameter in gQueryFormulaParameter do
-            if Parameter.Get(ParameterName, ParameterValue) then
-                exit(true);
+        if gQueryFormulaParameters.Get(ParameterName, ParameterValue) then
+            exit(true);
     end;
 }
