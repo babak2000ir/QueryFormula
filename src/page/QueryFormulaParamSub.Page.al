@@ -20,6 +20,10 @@ page 51102 "Query Formula Param Sub TPE"
                 {
                     ApplicationArea = All;
                 }
+                field("Test Value"; Rec."Test Value")
+                {
+                    ApplicationArea = All;
+                }
             }
         }
     }

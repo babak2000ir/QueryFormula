@@ -15,6 +15,11 @@ table 51101 "Query Formula Parameter TPE"
             DataClassification = SystemMetadata;
             ToolTip = 'Code of the parameter.';
         }
+        field(10; "Test Value"; Text[2048])
+        {
+            DataClassification = SystemMetadata;
+            ToolTip = 'Test value for the parameter.';
+        }
     }
 
     keys

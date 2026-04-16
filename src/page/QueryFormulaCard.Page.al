@@ -66,4 +66,39 @@ page 51101 "Query Formula Card TPE"
             }
         }
     }
+    actions
+    {
+        area(Processing)
+        {
+            action(RunFormula)
+            {
+                ApplicationArea = All;
+                Caption = 'Run Formula';
+                Image = NextRecord;
+                trigger OnAction()
+                var
+                    Logs: Record "Query Execution Log TPE";
+                    QueryFormulaParameter: Record "Query Formula Parameter TPE";
+                    QueryFormulaManagement: Codeunit "Query Formula Management TPE";
+                    Parameters: Dictionary of [Code[20], Text];
+                begin
+                    QueryFormulaManagement.SetLogger(Logs);
+
+                    QueryFormulaParameter.Reset();
+                    QueryFormulaParameter.SetRange("Query Formula Code", Rec.Code);
+                    if QueryFormulaParameter.FindSet() then
+                        repeat
+                            Parameters.Add(QueryFormulaParameter."Parameter Code", QueryFormulaParameter."Test Value");
+                        until QueryFormulaParameter.Next() = 0;
+
+                    QueryFormulaManagement.SetParameters(Parameters);
+
+                    Message(QueryFormulaManagement.RunQuery(Rec.Code));
+
+                    if not Logs.IsEmpty() then
+                        Page.Run(0, Logs);
+                end;
+            }
+        }
+    }
 }
