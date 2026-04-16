@@ -7,6 +7,7 @@ table 51101 "Query Formula Parameter TPE"
         field(1; "Query Formula Code"; Code[20])
         {
             DataClassification = SystemMetadata;
+            TableRelation = "Query Formula TPE";
             ToolTip = 'Code of the related query formula.';
         }
         field(2; "Parameter Code"; Code[20])

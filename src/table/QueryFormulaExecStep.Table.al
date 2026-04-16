@@ -9,6 +9,7 @@ table 51104 "Query Formula Exec. Step TPE"
         {
             DataClassification = SystemMetadata;
             Editable = false;
+            TableRelation = "Query Formula Execution TPE";
             ToolTip = 'Specifies the execution code.';
         }
         field(2; "Line No."; Integer)
