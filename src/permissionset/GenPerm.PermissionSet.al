@@ -18,5 +18,18 @@ permissionset 51100 GenPermTPE
         tabledata "Query Formula Exec. Step TPE" = RIMD,
         table "Query Formula Exec. Step TPE" = X,
         page "Query Formula Lookup TPE" = X,
-        page "Query Formula Param Lookup TPE" = X;
+        page "Query Formula Param Lookup TPE" = X,
+        tabledata "General Table Buffer TPE" = RIMD,
+        tabledata "Query Execution Log TPE" = RIMD,
+        tabledata "Special Formula TPE" = RIMD,
+        table "General Table Buffer TPE" = X,
+        table "Query Execution Log TPE" = X,
+        table "Special Formula TPE" = X,
+        codeunit "Query Executor TPE" = X,
+        codeunit "Query Formula Management TPE" = X,
+        codeunit "Special Formula Management TPE" = X,
+        page "Date-Time Dialog TPE" = X,
+        page "General Table Lookup TPE" = X,
+        page "Query Formula Exec. Steps TPE" = X,
+        page "Special Formula List TPE" = X;
 }
