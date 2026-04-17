@@ -75,6 +75,9 @@ page 51101 "Query Formula Card TPE"
                 ApplicationArea = All;
                 Caption = 'Run Formula';
                 Image = NextRecord;
+                Promoted = true;
+                PromotedCategory = Process;
+                PromotedIsBig = true;
                 trigger OnAction()
                 var
                     Logs: Record "Query Execution Log TPE";

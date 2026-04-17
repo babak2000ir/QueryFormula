@@ -61,7 +61,10 @@ codeunit 51102 "Query Formula Management TPE"
 
                 Case QueryFormulaFilter."Value 1 Type" of
                     "Value Type TPE"::Const:
-                        Value1 := QueryFormulaFilter."Value 1";
+                        if QueryFormulaFilter."Value 1" = '' then
+                            this.Log(StrSubstNo('QFM: Query formula filter has empty value 1.', QueryFormulaFilter."Field ID"))
+                        else
+                            Value1 := QueryFormulaFilter."Value 1";
                     "Value Type TPE"::FormulaParameter:
                         if (QueryFormulaFilter."Value 1" = '') or not this.GetParameterValue(QueryFormulaFilter."Value 1", Value1) then
                             this.Log(StrSubstNo('QFM: Query formula filter has empty or invalid parameter name.', QueryFormulaFilter."Value 1"));
@@ -75,7 +78,10 @@ codeunit 51102 "Query Formula Management TPE"
                 if QueryFormulaFilter."Filter Type" = "Filter Type TPE"::Between then
                     Case QueryFormulaFilter."Value 2 Type" of
                         "Value Type TPE"::Const:
-                            Value2 := QueryFormulaFilter."Value 2";
+                            if QueryFormulaFilter."Value 2" = '' then
+                                this.Log(StrSubstNo('QFM: Query formula filter has empty value 2 for Between filter type.', QueryFormulaFilter."Field ID"))
+                            else
+                                Value2 := QueryFormulaFilter."Value 2";
                         "Value Type TPE"::FormulaParameter:
                             if (QueryFormulaFilter."Value 2" = '') or not this.GetParameterValue(QueryFormulaFilter."Value 2", Value2) then
                                 this.Log(StrSubstNo('QFM: Query formula filter has empty or invalid parameter name.', QueryFormulaFilter."Value 2"));
@@ -88,19 +94,19 @@ codeunit 51102 "Query Formula Management TPE"
 
                 Case QueryFormulaFilter."Filter Type" of
                     "Filter Type TPE"::"Less Than":
-                        FieldRef.SetFilter('<%1', Value1);
+                        SetFilterWithType(FieldRef, '<%1', Value1);
                     "Filter Type TPE"::"Less Than or Equal":
-                        FieldRef.SetFilter('<=%1', Value1);
+                        SetFilterWithType(FieldRef, '<=%1', Value1);
                     "Filter Type TPE"::"Equal":
-                        FieldRef.SetRange(Value1);
+                        SetFilterWithType(FieldRef, '=%1', Value1);
                     "Filter Type TPE"::"Greater Than":
-                        FieldRef.SetFilter('>%1', Value1);
+                        SetFilterWithType(FieldRef, '>%1', Value1);
                     "Filter Type TPE"::"Greater Than or Equal":
-                        FieldRef.SetFilter('>=%1', Value1);
+                        SetFilterWithType(FieldRef, '>=%1', Value1);
                     "Filter Type TPE"::"Between":
-                        FieldRef.SetRange(Value1, Value2);
+                        SetFilterWithType(FieldRef, '>=%1&<=%2', Value1, Value2);
                     "Filter Type TPE"::Filter:
-                        FieldRef.SetFilter(Value1);
+                        SetFilterWithType(FieldRef, Value1);
                 End;
             until QueryFormulaFilter.Next() = 0;
 
@@ -201,5 +207,144 @@ codeunit 51102 "Query Formula Management TPE"
     begin
         if gQueryFormulaParameters.Get(ParameterName, ParameterValue) then
             exit(true);
+    end;
+
+    local procedure SetFilterWithType(FieldRef: FieldRef; Filter: Text)
+    begin
+        this.SetFilterWithType(FieldRef, Filter, '', '');
+    end;
+
+    local procedure SetFilterWithType(FieldRef: FieldRef; Filter: Text; Value1: Text)
+    begin
+        this.SetFilterWithType(FieldRef, Filter, Value1, '');
+    end;
+
+    local procedure SetFilterWithType(FieldRef: FieldRef; Filter: Text; Value1: Text; Value2: Text)
+    var
+        RecordIdValue1: RecordID;
+        RecordIdValue2: RecordID;
+        BigIntegerValue1: BigInteger;
+        BigIntegerValue2: BigInteger;
+        BooleanValue1: Boolean;
+        BooleanValue2: Boolean;
+        DateValue1: Date;
+        DateValue2: Date;
+        DateTimeValue1: DateTime;
+        DateTimeValue2: DateTime;
+        DecimalValue1: Decimal;
+        DecimalValue2: Decimal;
+        DurationValue1: Duration;
+        DurationValue2: Duration;
+        GuidValue1: Guid;
+        GuidValue2: Guid;
+        IntegerValue1: Integer;
+        IntegerValue2: Integer;
+        TimeValue1: Time;
+        TimeValue2: Time;
+    begin
+        case FieldRef.Type of
+            FieldRef.Type::TableFilter:
+                FieldRef.SetFilter(Filter, Value1, Value2);
+            FieldRef.Type::RecordID:
+                begin
+                    if not Evaluate(RecordIdValue1, Value1) or not Evaluate(RecordIdValue2, Value2) then begin
+                        this.Log(StrSubstNo('QFM: Invalid RecordID value for field %1.', FieldRef.Name));
+                        exit;
+                    end;
+                    FieldRef.SetFilter(Filter, RecordIdValue1, RecordIdValue2);
+                end;
+            FieldRef.Type::Date:
+                begin
+                    if not Evaluate(DateValue1, Value1) or not Evaluate(DateValue2, Value2) then begin
+                        this.Log(StrSubstNo('QFM: Invalid Date value for field %1.', FieldRef.Name));
+                        exit;
+                    end;
+                    FieldRef.SetFilter(Filter, DateValue1, DateValue2);
+                end;
+            FieldRef.Type::Time:
+                begin
+                    if not Evaluate(TimeValue1, Value1) or not Evaluate(TimeValue2, Value2) then begin
+                        this.Log(StrSubstNo('QFM: Invalid Time value for field %1.', FieldRef.Name));
+                        exit;
+                    end;
+                    FieldRef.SetFilter(Filter, TimeValue1, TimeValue2);
+                end;
+            FieldRef.Type::DateFormula:
+                FieldRef.SetFilter(Filter, Value1);
+            FieldRef.Type::Decimal:
+                begin
+                    if not Evaluate(DecimalValue1, Value1) or not Evaluate(DecimalValue2, Value2) then begin
+                        this.Log(StrSubstNo('QFM: Invalid Decimal value for field %1.', FieldRef.Name));
+                        exit;
+                    end;
+                    FieldRef.SetFilter(Filter, DecimalValue1, DecimalValue2);
+                end;
+            FieldRef.Type::Media:
+                FieldRef.SetFilter(Filter, Value1, Value2);
+            FieldRef.Type::MediaSet:
+                FieldRef.SetFilter(Filter, Value1, Value2);
+            FieldRef.Type::Text:
+                FieldRef.SetFilter(Filter, Value1, Value2);
+            FieldRef.Type::Code:
+                FieldRef.SetFilter(Filter, Value1, Value2);
+            FieldRef.Type::BLOB:
+                this.Log(StrSubstNo('QFM: Cannot set filter on BLOB field %1.', FieldRef.Name));
+            FieldRef.Type::Boolean:
+                begin
+                    if not Evaluate(BooleanValue1, Value1) or not Evaluate(BooleanValue2, Value2) then begin
+                        this.Log(StrSubstNo('QFM: Invalid Boolean value for field %1.', FieldRef.Name));
+                        exit;
+                    end;
+                    FieldRef.SetFilter(Filter, BooleanValue1, BooleanValue2);
+                end;
+            FieldRef.Type::Integer:
+                begin
+                    if not Evaluate(IntegerValue1, Value1) or not Evaluate(IntegerValue2, Value2) then begin
+                        this.Log(StrSubstNo('QFM: Invalid Integer value for field %1.', FieldRef.Name));
+                        exit;
+                    end;
+                    FieldRef.SetFilter(Filter, IntegerValue1, IntegerValue2);
+                end;
+            FieldRef.Type::Option:
+                begin
+                    if not Evaluate(IntegerValue1, Value1) or not Evaluate(IntegerValue2, Value2) then begin
+                        this.Log(StrSubstNo('QFM: Invalid Option value for field %1.', FieldRef.Name));
+                        exit;
+                    end;
+                    FieldRef.SetFilter(Filter, IntegerValue1, IntegerValue2);
+                end;
+            FieldRef.Type::BigInteger:
+                begin
+                    if not Evaluate(BigIntegerValue1, Value1) or not Evaluate(BigIntegerValue2, Value2) then begin
+                        this.Log(StrSubstNo('QFM: Invalid BigInteger value for field %1.', FieldRef.Name));
+                        exit;
+                    end;
+                    FieldRef.SetFilter(Filter, BigIntegerValue1, BigIntegerValue2);
+                end;
+            FieldRef.Type::Duration:
+                begin
+                    if not Evaluate(DurationValue1, Value1) or not Evaluate(DurationValue2, Value2) then begin
+                        this.Log(StrSubstNo('QFM: Invalid Duration value for field %1.', FieldRef.Name));
+                        exit;
+                    end;
+                    FieldRef.SetFilter(Filter, DurationValue1, DurationValue2);
+                end;
+            FieldRef.Type::GUID:
+                begin
+                    if not Evaluate(GuidValue1, Value1) or not Evaluate(GuidValue2, Value2) then begin
+                        this.Log(StrSubstNo('QFM: Invalid GUID value for field %1.', FieldRef.Name));
+                        exit;
+                    end;
+                    FieldRef.SetFilter(Filter, GuidValue1, GuidValue2);
+                end;
+            FieldRef.Type::DateTime:
+                begin
+                    if not Evaluate(DateTimeValue1, Value1) or not Evaluate(DateTimeValue2, Value2) then begin
+                        this.Log(StrSubstNo('QFM: Invalid DateTime value for field %1.', FieldRef.Name));
+                        exit;
+                    end;
+                    FieldRef.SetFilter(Filter, DateTimeValue1, DateTimeValue2);
+                end;
+        end;
     end;
 }
