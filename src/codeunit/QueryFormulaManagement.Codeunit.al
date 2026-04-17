@@ -198,9 +198,7 @@ codeunit 51102 "Query Formula Management TPE"
 
     local procedure Log(LogMessage: Text)
     begin
-        gQueryExecutionLog.Init();
-        gQueryExecutionLog.Message := CopyStr(LogMessage, 1, 2048);
-        gQueryExecutionLog.Insert();
+        gQueryExecutionLog.Insert(LogMessage)
     end;
 
     local procedure GetParameterValue(ParameterName: Code[20]; var ParameterValue: Text) Result: Boolean

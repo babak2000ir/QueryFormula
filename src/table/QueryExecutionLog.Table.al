@@ -24,8 +24,16 @@ table 51107 "Query Execution Log TPE"
         }
     }
 
-    fieldgroups
-    {
-        // Add changes to field groups here
-    }
+    procedure Insert(LogMessage: Text)
+    var
+        NextEntryNo: Integer;
+    begin
+        Rec.Reset();
+        if Rec.FindLast() then;
+        NextEntryNo := Rec."Entry No." + 1;
+        Rec.Init();
+        Rec."Entry No." := NextEntryNo;
+        Rec."Message" := CopyStr(LogMessage, 1, 2048);
+        Rec.Insert();
+    end;
 }
