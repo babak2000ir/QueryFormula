@@ -3,6 +3,7 @@ page 51101 "Query Formula Card TPE"
     ApplicationArea = All;
     Caption = 'Query Formula Card';
     PageType = Card;
+    RefreshOnActivate = true;
     SourceTable = "Query Formula TPE";
     layout
     {
@@ -19,6 +20,17 @@ page 51101 "Query Formula Card TPE"
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = All;
+                }
+                field(LogCount; gQueryFormulaManagement.LogsCount())
+                {
+                    ApplicationArea = All;
+                    Caption = 'Log Count';
+                    Editable = false;
+
+                    trigger OnDrillDown()
+                    begin
+                        gQueryFormulaManagement.ShowLogs();
+                    end;
                 }
             }
             part(Parameters; "Query Formula Param Sub TPE")
@@ -89,9 +101,9 @@ page 51101 "Query Formula Card TPE"
                 trigger OnAction()
                 var
                     QueryFormulaParameter: Record "Query Formula Parameter TPE";
-                    QueryFormulaManagement: Codeunit "Query Formula Management TPE";
                     Parameters: Dictionary of [Code[20], Text];
                 begin
+                    Clear(gQueryFormulaManagement);
                     QueryFormulaParameter.Reset();
                     QueryFormulaParameter.SetRange("Query Formula Code", Rec.Code);
                     if QueryFormulaParameter.FindSet() then
@@ -99,16 +111,16 @@ page 51101 "Query Formula Card TPE"
                             Parameters.Add(QueryFormulaParameter."Parameter Code", QueryFormulaParameter."Test Value");
                         until QueryFormulaParameter.Next() = 0;
 
-                    QueryFormulaManagement.SetParameters(Parameters);
-                    Message(QueryFormulaManagement.RunQuery(Rec.Code));
-
-                    QueryFormulaManagement.ShowLogs();
+                    gQueryFormulaManagement.SetParameters(Parameters);
+                    gQueryFormulaManagement.RunQuery(Rec.Code);
+                    CurrPage.Update();
                 end;
             }
         }
     }
 
     var
+        gQueryFormulaManagement: Codeunit "Query Formula Management TPE";
         FieldFieldsVisibility: Boolean;
 
     trigger OnOpenPage()

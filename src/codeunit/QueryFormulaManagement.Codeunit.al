@@ -528,4 +528,9 @@ codeunit 51102 "Query Formula Management TPE"
     begin
         this.gLogs.ShowLogs();
     end;
+
+    procedure LogsCount(): Integer
+    begin
+        exit(this.gLogs.Count());
+    end;
 }
