@@ -4,7 +4,7 @@ page 51112 "Log List TPE"
     Caption = 'Log List';
     Editable = false;
     PageType = List;
-    SourceTable = "Query Execution Log TPE";
+    SourceTable = "Logs TPE";
     UsageCategory = Lists;
 
     layout
@@ -13,7 +13,15 @@ page 51112 "Log List TPE"
         {
             repeater(Group)
             {
-                field("Message"; Rec.Message)
+                field("Entity Key"; Rec."Entity Key")
+                {
+                    ToolTip = 'Specifies the value of the Entity Key field.', Comment = '%';
+                }
+                field("Category Code"; Rec."Category Code")
+                {
+                    ToolTip = 'Specifies the value of the Category Code field.', Comment = '%';
+                }
+                field("Message"; Rec."Message")
                 {
                     ToolTip = 'Specifies the value of the Message field.', Comment = '%';
                 }

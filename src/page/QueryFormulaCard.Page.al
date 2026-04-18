@@ -85,9 +85,9 @@ page 51101 "Query Formula Card TPE"
                 Promoted = true;
                 PromotedCategory = Process;
                 PromotedIsBig = true;
+                ToolTip = 'Run the query formula with the defined parameters and filters.';
                 trigger OnAction()
                 var
-                    Logs: Record "Query Execution Log TPE";
                     QueryFormulaParameter: Record "Query Formula Parameter TPE";
                     QueryFormulaManagement: Codeunit "Query Formula Management TPE";
                     Parameters: Dictionary of [Code[20], Text];
@@ -102,10 +102,7 @@ page 51101 "Query Formula Card TPE"
                     QueryFormulaManagement.SetParameters(Parameters);
                     Message(QueryFormulaManagement.RunQuery(Rec.Code));
 
-                    QueryFormulaManagement.GetLogger(Logs);
-
-                    if not Logs.IsEmpty() then
-                        Page.Run(Page::"Log List TPE", Logs);
+                    QueryFormulaManagement.ShowLogs();
                 end;
             }
         }
