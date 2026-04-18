@@ -4,7 +4,6 @@ page 51101 "Query Formula Card TPE"
     Caption = 'Query Formula Card';
     PageType = Card;
     SourceTable = "Query Formula TPE";
-
     layout
     {
         area(Content)
@@ -52,16 +51,24 @@ page 51101 "Query Formula Card TPE"
                 field("Query Type"; Rec."Query Type")
                 {
                     ApplicationArea = All;
+
+                    trigger OnValidate()
+                    begin
+                        SetUIVariables();
+                    end;
                 }
-                field("Field ID"; Rec."Field ID")
+                group(FieldGroup)
                 {
-                    ApplicationArea = All;
-                    Visible = Rec."Query Type" <> Rec."Query Type"::Count;
-                }
-                field("Field Name"; Rec."Field Name")
-                {
-                    ApplicationArea = All;
-                    Visible = Rec."Query Type" <> Rec."Query Type"::Count;
+                    Caption = 'Field';
+                    Visible = FieldFieldsVisibility;
+                    field("Field ID"; Rec."Field ID")
+                    {
+                        ApplicationArea = All;
+                    }
+                    field("Field Name"; Rec."Field Name")
+                    {
+                        ApplicationArea = All;
+                    }
                 }
             }
         }
@@ -103,4 +110,18 @@ page 51101 "Query Formula Card TPE"
             }
         }
     }
+
+    var
+        FieldFieldsVisibility: Boolean;
+
+    trigger OnOpenPage()
+    begin
+        SetUIVariables();
+    end;
+
+    procedure SetUIVariables()
+    begin
+        FieldFieldsVisibility := Rec."Query Type" <> Rec."Query Type"::Count;
+    end;
+
 }

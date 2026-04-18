@@ -138,12 +138,16 @@ codeunit 51102 "Query Formula Management TPE"
                 end;
         end;
 
-        if (QueryFormula."Field ID" = 0) or not Field.Get(QueryFormula."Table ID", QueryFormula."Field ID") then begin
-            this.Log(StrSubstNo('QFM: Query formula with code %1 has invalid field ID.', QueryFormulaCode));
-            exit;
-        end;
+        if QueryFormula."Query Type" <> "Query Type TPE"::Count then
+            if (QueryFormula."Field ID" = 0) or not Field.Get(QueryFormula."Table ID", QueryFormula."Field ID") then begin
+                this.Log(StrSubstNo('QFM: Query formula with code %1 has invalid field ID.', QueryFormulaCode));
+                exit;
+            end;
 
         fieldRef := RecRef.Field(QueryFormula."Field ID");
+
+        if FieldRef.Class = FieldClass::FlowField then
+            FieldRef.CalcField();
 
         case QueryFormula."Query Type" of
             "Query Type TPE"::First:
@@ -168,7 +172,9 @@ codeunit 51102 "Query Formula Management TPE"
                     end;
 
                     repeat
-                        Evaluate(DecimalValue, fieldRef.Value);
+                        if FieldRef.Class = FieldClass::FlowField then
+                            FieldRef.CalcField();
+                        Evaluate(DecimalValue, Format(fieldRef.Value, 0, 9));
                         DecimalResult += DecimalValue;
                     until RecRef.Next() = 0;
 
@@ -182,7 +188,9 @@ codeunit 51102 "Query Formula Management TPE"
                     end;
 
                     repeat
-                        Evaluate(DecimalValue, fieldRef.Value);
+                        if FieldRef.Class = FieldClass::FlowField then
+                            FieldRef.CalcField();
+                        Evaluate(DecimalValue, Format(fieldRef.Value, 0, 9));
                         DecimalResult += DecimalValue;
                         Counter += 1;
                     until RecRef.Next() = 0;
@@ -192,6 +200,9 @@ codeunit 51102 "Query Formula Management TPE"
                 end;
             "Query Type TPE"::List:
                 repeat
+                    if FieldRef.Class = FieldClass::FlowField then
+                        FieldRef.CalcField();
+
                     if Result = '' then
                         Result := Format(fieldRef.Value, 0, 9)
                     else
