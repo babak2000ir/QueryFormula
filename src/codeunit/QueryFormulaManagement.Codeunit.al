@@ -15,17 +15,7 @@ codeunit 51102 "Query Formula Management TPE"
     var
         QueryFormula: Record "Query Formula TPE";
         AllObjWithCaption: Record AllObjWithCaption;
-        Field: Record Field;
-        QueryFormulaFilter: Record "Query Formula Filter TPE";
-        SpecialFormula: Record "Special Formula TPE";
-        SpecialFormulaManagement: Codeunit "Special Formula Management TPE";
         RecRef: RecordRef;
-        FieldRef: FieldRef;
-        DecimalResult: Decimal;
-        DecimalValue: Decimal;
-        Counter: Integer;
-        Value1: Text;
-        Value2: Text;
     begin
         gQueryFormulaCode := QueryFormulaCode;
         gCategoryCode := 'QFM';
@@ -42,8 +32,21 @@ codeunit 51102 "Query Formula Management TPE"
 
         RecRef.Open(QueryFormula."Table ID");
 
+        this.FilterQuery(QueryFormula, RecRef);
+
+        Result := this.ExecuteQuery(QueryFormula, RecRef);
+    end;
+
+    procedure FilterQuery(QueryFormula: Record "Query Formula TPE"; RecRef: RecordRef)
+    var
+        QueryFormulaFilter: Record "Query Formula Filter TPE";
+        Field: Record Field;
+        FieldRef: FieldRef;
+        Value1: Text;
+        Value2: Text;
+    begin
         QueryFormulaFilter.Reset();
-        QueryFormulaFilter.SetRange("Query Formula Code", QueryFormulaCode);
+        QueryFormulaFilter.SetRange("Query Formula Code", QueryFormula."Code");
         if QueryFormulaFilter.FindSet() then
             repeat
                 if (QueryFormulaFilter."Field ID" = 0) or not Field.Get(QueryFormula."Table ID", QueryFormulaFilter."Field ID") then begin
@@ -53,74 +56,91 @@ codeunit 51102 "Query Formula Management TPE"
 
                 FieldRef := RecRef.Field(QueryFormulaFilter."Field ID");
 
-                Value1 := '';
-                Value2 := '';
-
-                if (QueryFormulaFilter."Value 1 Type" = "Value Type TPE"::SpecialFormula) or (QueryFormulaFilter."Value 2 Type" = "Value Type TPE"::SpecialFormula) then
-                    SpecialFormulaManagement.GetSpecialFormulas(SpecialFormula);
-
-                Case QueryFormulaFilter."Value 1 Type" of
-                    "Value Type TPE"::Const:
-                        if QueryFormulaFilter."Value 1" = '' then
-                            this.Log('Query formula filter has empty value 1 for field ID %1.', Format(QueryFormulaFilter."Field ID", 0, 9))
-                        else
-                            Value1 := QueryFormulaFilter."Value 1";
-                    "Value Type TPE"::FormulaParameter:
-                        if (QueryFormulaFilter."Value 1" = '') or not this.GetParameterValue(QueryFormulaFilter."Value 1", Value1) then
-                            this.Log('Query formula filter has empty or invalid parameter name for field ID %1.', Format(QueryFormulaFilter."Field ID", 0, 9));
-                    "Value Type TPE"::SpecialFormula:
-                        if (QueryFormulaFilter."Value 1" = '') or not SpecialFormula.Get(QueryFormulaFilter."Value 1") then
-                            this.Log('Query formula filter has invalid special formula name for field ID %1.', Format(QueryFormulaFilter."Field ID", 0, 9));
-                    else
-                        Value1 := SpecialFormulaManagement.ExecuteSpecialFormula(QueryFormulaFilter."Value 1")
-                End;
-
-                if QueryFormulaFilter."Filter Type" = "Filter Type TPE"::Between then
-                    Case QueryFormulaFilter."Value 2 Type" of
-                        "Value Type TPE"::Const:
-                            if QueryFormulaFilter."Value 2" = '' then
-                                this.Log('Query formula filter has empty value 2 for Between filter type for field ID %1.', Format(QueryFormulaFilter."Field ID", 0, 9))
-                            else
-                                Value2 := QueryFormulaFilter."Value 2";
-                        "Value Type TPE"::FormulaParameter:
-                            if (QueryFormulaFilter."Value 2" = '') or not this.GetParameterValue(QueryFormulaFilter."Value 2", Value2) then
-                                this.Log('Query formula filter has empty or invalid parameter name for field ID %1.', Format(QueryFormulaFilter."Field ID", 0, 9));
-                        "Value Type TPE"::SpecialFormula:
-                            if (QueryFormulaFilter."Value 2" = '') or not SpecialFormula.Get(QueryFormulaFilter."Value 2") then
-                                this.Log('Query formula filter has invalid special formula name for field ID %1.', Format(QueryFormulaFilter."Field ID", 0, 9));
-                        else
-                            Value2 := SpecialFormulaManagement.ExecuteSpecialFormula(QueryFormulaFilter."Value 2")
-                    End;
+                this.GetQueryValues(QueryFormulaFilter, Value1, Value2);
 
                 Case QueryFormulaFilter."Filter Type" of
                     "Filter Type TPE"::"Less Than":
-                        SetFilterWithType(FieldRef, '<%1', Value1);
+                        this.SetFilterWithType(FieldRef, '<%1', Value1);
                     "Filter Type TPE"::"Less Than or Equal":
-                        SetFilterWithType(FieldRef, '<=%1', Value1);
+                        this.SetFilterWithType(FieldRef, '<=%1', Value1);
                     "Filter Type TPE"::"Equal":
-                        SetFilterWithType(FieldRef, '=%1', Value1);
+                        this.SetFilterWithType(FieldRef, '=%1', Value1);
                     "Filter Type TPE"::"Greater Than":
-                        SetFilterWithType(FieldRef, '>%1', Value1);
+                        this.SetFilterWithType(FieldRef, '>%1', Value1);
                     "Filter Type TPE"::"Greater Than or Equal":
-                        SetFilterWithType(FieldRef, '>=%1', Value1);
+                        this.SetFilterWithType(FieldRef, '>=%1', Value1);
                     "Filter Type TPE"::"Between":
-                        SetFilterWithType(FieldRef, '>=%1&<=%2', Value1, Value2);
+                        this.SetFilterWithType(FieldRef, '>=%1&<=%2', Value1, Value2);
                     "Filter Type TPE"::Filter:
-                        SetFilterWithType(FieldRef, Value1);
+                        this.SetFilterWithType(FieldRef, Value1);
                 End;
             until QueryFormulaFilter.Next() = 0;
+    end;
 
+    local procedure GetQueryValues(QueryFormulaFilter: Record "Query Formula Filter TPE"; var Value1: Text; var Value2: Text)
+    var
+        SpecialFormula: Record "Special Formula TPE";
+        SpecialFormulaManagement: Codeunit "Special Formula Management TPE";
+    begin
+        Value1 := '';
+        Value2 := '';
+
+        if (QueryFormulaFilter."Value 1 Type" = "Value Type TPE"::SpecialFormula) or (QueryFormulaFilter."Value 2 Type" = "Value Type TPE"::SpecialFormula) then
+            SpecialFormulaManagement.GetSpecialFormulas(SpecialFormula);
+
+        Case QueryFormulaFilter."Value 1 Type" of
+            "Value Type TPE"::Const:
+                if QueryFormulaFilter."Value 1" = '' then
+                    this.Log('Query formula filter has empty value 1 for field ID %1.', Format(QueryFormulaFilter."Field ID", 0, 9))
+                else
+                    Value1 := QueryFormulaFilter."Value 1";
+            "Value Type TPE"::FormulaParameter:
+                if (QueryFormulaFilter."Value 1" = '') or not this.GetParameterValue(QueryFormulaFilter."Value 1", Value1) then
+                    this.Log('Query formula filter has empty or invalid parameter name for field ID %1.', Format(QueryFormulaFilter."Field ID", 0, 9));
+            "Value Type TPE"::SpecialFormula:
+                if (QueryFormulaFilter."Value 1" = '') or not SpecialFormula.Get(QueryFormulaFilter."Value 1") then
+                    this.Log('Query formula filter has invalid special formula name for field ID %1.', Format(QueryFormulaFilter."Field ID", 0, 9))
+                else
+                    Value1 := SpecialFormulaManagement.ExecuteSpecialFormula(QueryFormulaFilter."Value 1")
+        End;
+
+        if QueryFormulaFilter."Filter Type" = "Filter Type TPE"::Between then
+            Case QueryFormulaFilter."Value 2 Type" of
+                "Value Type TPE"::Const:
+                    if QueryFormulaFilter."Value 2" = '' then
+                        this.Log('Query formula filter has empty value 2 for Between filter type for field ID %1.', Format(QueryFormulaFilter."Field ID", 0, 9))
+                    else
+                        Value2 := QueryFormulaFilter."Value 2";
+                "Value Type TPE"::FormulaParameter:
+                    if (QueryFormulaFilter."Value 2" = '') or not this.GetParameterValue(QueryFormulaFilter."Value 2", Value2) then
+                        this.Log('Query formula filter has empty or invalid parameter name for field ID %1.', Format(QueryFormulaFilter."Field ID", 0, 9));
+                "Value Type TPE"::SpecialFormula:
+                    if (QueryFormulaFilter."Value 2" = '') or not SpecialFormula.Get(QueryFormulaFilter."Value 2") then
+                        this.Log('Query formula filter has invalid special formula name for field ID %1.', Format(QueryFormulaFilter."Field ID", 0, 9))
+                    else
+                        Value2 := SpecialFormulaManagement.ExecuteSpecialFormula(QueryFormulaFilter."Value 2")
+            End;
+    end;
+
+    local procedure ExecuteQuery(QueryFormula: Record "Query Formula TPE"; RecRef: RecordRef) Result: Text
+    var
+        Field: Record Field;
+        FieldRef: FieldRef;
+        DecimalResult: Decimal;
+        DecimalValue: Decimal;
+        Counter: Integer;
+    begin
         case QueryFormula."Query Type" of
             "Query Type TPE"::Count:
                 Result := Format(RecRef.Count(), 0, 9);
             "Query Type TPE"::First:
                 if not RecRef.FindFirst() then begin
-                    this.Log('No records found for query formula with code %1, for the table %2.', QueryFormulaCode, Format(QueryFormula."Table ID", 0, 9));
+                    this.Log('No records found for query formula with code %1, for the table %2.', QueryFormula.Code, Format(QueryFormula."Table ID", 0, 9));
                     exit;
                 end;
             "Query Type TPE"::Last:
                 if not RecRef.FindLast() then begin
-                    this.Log('No records found for query formula with code %1, for the table %2.', QueryFormulaCode, Format(QueryFormula."Table ID", 0, 9));
+                    this.Log('No records found for query formula with code %1, for the table %2.', QueryFormula.Code, Format(QueryFormula."Table ID", 0, 9));
                     exit;
                 end;
             "Query Type TPE"::Min,
@@ -129,14 +149,14 @@ codeunit 51102 "Query Formula Management TPE"
             "Query Type TPE"::Average,
             "Query Type TPE"::List:
                 if not RecRef.FindSet() then begin
-                    this.Log('No records found for query formula with code %1, for the table %2.', QueryFormulaCode, Format(QueryFormula."Table ID", 0, 9));
+                    this.Log('No records found for query formula with code %1, for the table %2.', QueryFormula.Code, Format(QueryFormula."Table ID", 0, 9));
                     exit;
                 end;
         end;
 
         if QueryFormula."Query Type" <> "Query Type TPE"::Count then
             if (QueryFormula."Field ID" = 0) or not Field.Get(QueryFormula."Table ID", QueryFormula."Field ID") then begin
-                this.Log('Query formula with code %1 has invalid field ID.', QueryFormulaCode);
+                this.Log('Query formula with code %1 has invalid field ID.', QueryFormula.Code);
                 exit;
             end;
 
@@ -163,7 +183,7 @@ codeunit 51102 "Query Formula Management TPE"
             "Query Type TPE"::Sum:
                 begin
                     if not (FieldRef.Type in [FieldType::Integer, FieldType::BigInteger, FieldType::Decimal, FieldType::Duration]) then begin
-                        this.Log('Query formula with code %1 has invalid field type for Sum query type.', QueryFormulaCode);
+                        this.Log('Query formula with code %1 has invalid field type for Sum query type.', QueryFormula.Code);
                         exit;
                     end;
 
@@ -179,7 +199,7 @@ codeunit 51102 "Query Formula Management TPE"
             "Query Type TPE"::Average:
                 begin
                     if not (FieldRef.Type in [FieldType::Integer, FieldType::BigInteger, FieldType::Decimal, FieldType::Duration]) then begin
-                        this.gLogs.Insert(QueryFormulaCode, 'QFM', 'Query formula with code %1 has invalid field type for Average query type.', QueryFormulaCode);
+                        this.Log('Query formula with code %1 has invalid field type for Average query type.', QueryFormula.Code);
                         exit;
                     end;
 
