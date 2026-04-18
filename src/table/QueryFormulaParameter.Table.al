@@ -24,7 +24,7 @@ table 51101 "Query Formula Parameter TPE"
 
     keys
     {
-        key(Key1; "Query Formula Code")
+        key(Key1; "Query Formula Code", "Parameter Code")
         {
             Clustered = true;
         }

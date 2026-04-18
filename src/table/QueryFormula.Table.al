@@ -32,6 +32,8 @@ table 51100 "Query Formula TPE"
                         QueryFormulaFilterTPE.DeleteAll();
                     end else
                         Error('');
+
+                Rec.CalcFields("Table Name");
             end;
         }
         field(21; "Table Name"; Text[250])
