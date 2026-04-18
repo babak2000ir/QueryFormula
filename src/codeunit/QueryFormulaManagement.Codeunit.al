@@ -35,6 +35,8 @@ codeunit 51102 "Query Formula Management TPE"
         this.FilterQuery(QueryFormula, RecRef);
 
         Result := this.ExecuteQuery(QueryFormula, RecRef);
+
+        this.AddResultToParameters(Result);
     end;
 
     procedure FilterQuery(QueryFormula: Record "Query Formula TPE"; RecRef: RecordRef)
@@ -493,6 +495,22 @@ codeunit 51102 "Query Formula Management TPE"
                     end;
                     FieldRef.SetFilter(Filter, DateTimeValue1, DateTimeValue2);
                 end;
+        end;
+    end;
+
+    local procedure AddResultToParameters(Result: Text)
+    var
+        QueryFormulaParameter: Record "Query Formula Parameter TPE";
+    begin
+        if QueryFormulaParameter.Get(this.gQueryFormulaCode, '_RESULT') then begin
+            QueryFormulaParameter."Test Value" := CopyStr(Result, 1, 2048);
+            QueryFormulaParameter.Modify();
+        end else begin
+            QueryFormulaParameter.Init();
+            QueryFormulaParameter."Query Formula Code" := gQueryFormulaCode;
+            QueryFormulaParameter."Parameter Code" := '_RESULT';
+            QueryFormulaParameter."Test Value" := CopyStr(Result, 1, 2048);
+            QueryFormulaParameter.Insert();
         end;
     end;
 
