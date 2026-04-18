@@ -85,8 +85,6 @@ page 51101 "Query Formula Card TPE"
                     QueryFormulaManagement: Codeunit "Query Formula Management TPE";
                     Parameters: Dictionary of [Code[20], Text];
                 begin
-                    QueryFormulaManagement.SetLogger(Logs);
-
                     QueryFormulaParameter.Reset();
                     QueryFormulaParameter.SetRange("Query Formula Code", Rec.Code);
                     if QueryFormulaParameter.FindSet() then
@@ -95,11 +93,12 @@ page 51101 "Query Formula Card TPE"
                         until QueryFormulaParameter.Next() = 0;
 
                     QueryFormulaManagement.SetParameters(Parameters);
-
                     Message(QueryFormulaManagement.RunQuery(Rec.Code));
 
+                    QueryFormulaManagement.GetLogger(Logs);
+
                     if not Logs.IsEmpty() then
-                        Page.Run(0, Logs);
+                        Page.Run(Page::"Log List TPE", Logs);
                 end;
             }
         }

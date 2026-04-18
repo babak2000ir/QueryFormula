@@ -1,7 +1,7 @@
 table 51107 "Query Execution Log TPE"
 {
     DataClassification = ToBeClassified;
-
+    TableType = Temporary;
     fields
     {
         field(1; "Entry No."; Integer)
