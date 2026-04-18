@@ -15,6 +15,26 @@ codeunit 51100 "Special Formula Management TPE"
         SpecialFormula.Description := 'Work Date';
         SpecialFormula.Insert();
 
+        SpecialFormula.Init();
+        SpecialFormula."Code" := 'USERID';
+        SpecialFormula.Description := 'Current User ID';
+        SpecialFormula.Insert();
+
+        SpecialFormula.Init();
+        SpecialFormula."Code" := 'USERGUID';
+        SpecialFormula.Description := 'Current User Security ID';
+        SpecialFormula.Insert();
+
+        SpecialFormula.Init();
+        SpecialFormula."Code" := 'COMPANYNAME';
+        SpecialFormula.Description := 'Current Company Name';
+        SpecialFormula.Insert();
+
+        SpecialFormula.Init();
+        SpecialFormula."Code" := 'COMPANYGUID';
+        SpecialFormula.Description := 'Current Company GUID';
+        SpecialFormula.Insert();
+
         this.OnGetSpecialFormulas(SpecialFormula);
     end;
 
@@ -36,6 +56,26 @@ codeunit 51100 "Special Formula Management TPE"
             'WORKDATE':
                 begin
                     Result := Format(WorkDate(), 0, 9);
+                    exit;
+                end;
+            'USERID':
+                begin
+                    Result := Format(UserId(), 0, 9);
+                    exit;
+                end;
+            'USERGUID':
+                begin
+                    Result := Format(UserSecurityId(), 0, 9);
+                    exit;
+                end;
+            'COMPANYNAME':
+                begin
+                    Result := Format(CompanyName, 0, 9);
+                    exit;
+                end;
+            'COMPANYGUID':
+                begin
+                    Result := Format(CompanyProperty.ID(), 0, 9);
                     exit;
                 end;
         end;
