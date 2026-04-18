@@ -184,7 +184,7 @@ table 51102 "Query Formula Filter TPE"
                         Field.Type::Code:
                             if Field.RelationTableNo <> 0 then begin
                                 GeneralTableLookup.LookupMode(true);
-                                GeneralTableLookup.LoadData(Field.RelationTableNo);
+                                GeneralTableLookup.LoadData(Field.RelationTableNo, Value);
                                 GeneralTableLookup.Editable(false);
                                 if GeneralTableLookup.RunModal() = Action::LookupOK then begin
                                     GeneralTableLookup.GetRecord(GeneralTableBuffer);
@@ -194,7 +194,7 @@ table 51102 "Query Formula Filter TPE"
                         Field.Type::Option:
                             begin
                                 GeneralTableLookup.LookupMode(true);
-                                GeneralTableLookup.LoadData(Field.OptionString);
+                                GeneralTableLookup.LoadData(Field.OptionString, Value);
                                 GeneralTableLookup.Editable(false);
                                 if GeneralTableLookup.RunModal() = Action::LookupOK then begin
                                     GeneralTableLookup.GetRecord(GeneralTableBuffer);
@@ -207,6 +207,7 @@ table 51102 "Query Formula Filter TPE"
             "Value Type TPE"::SpecialFormula:
                 begin
                     SpecialFormulaList.LookupMode(true);
+                    SpecialFormulaList.SetRecord(Value);
                     if SpecialFormulaList.RunModal() = Action::LookupOK then begin
                         SpecialFormulaList.GetRecord(SpecialFormula);
                         Value := SpecialFormula."Code";
@@ -218,8 +219,12 @@ table 51102 "Query Formula Filter TPE"
                     QueryFormulaParameter.SetRange("Query Formula Code", Rec."Query Formula Code");
                     if not QueryFormulaParameter.IsEmpty then begin
                         QueryFormulaParamLookup.SetTableView(QueryFormulaParameter);
+                        if Value <> '' then begin
+                            QueryFormulaParameter.SetRange("Parameter Code", Value);
+                            if QueryFormulaParameter.FindFirst() then
+                                QueryFormulaParamLookup.SetRecord(QueryFormulaParameter);
+                        end;
                         QueryFormulaParamLookup.LookupMode(true);
-
                         if QueryFormulaParamLookup.RunModal() = Action::LookupOK then begin
                             QueryFormulaParamLookup.GetRecord(QueryFormulaParameter);
                             Value := QueryFormulaParameter."Parameter Code";

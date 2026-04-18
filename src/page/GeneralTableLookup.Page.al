@@ -167,7 +167,7 @@ page 51111 "General Table Lookup TPE"
         FieldCount: Integer;
 
 
-    procedure LoadData(tableNo: Integer)
+    procedure LoadData(tableNo: Integer; Value: Text[250])
     begin
         Clear(Rec);
         InitUI();
@@ -184,9 +184,17 @@ page 51111 "General Table Lookup TPE"
 
         SetUI();
         LoadPageForRecRef();
+
+        if Rec.FindFirst() then;
+        if Value <> '' then
+            if Rec.FindSet() then
+                repeat
+                    if Rec.Field1 = Value then
+                        break;
+                until Rec.Next() = 0;
     end;
 
-    procedure LoadData(EnumOptions: Text[2047])
+    procedure LoadData(EnumOptions: Text[2047]; Value: Text[250])
     begin
         Clear(Rec);
         InitUI();
@@ -199,6 +207,14 @@ page 51111 "General Table Lookup TPE"
 
         SetUI();
         LoadPageForOption(EnumOptions);
+
+        if Rec.FindFirst() then;
+        if Value <> '' then
+            if Rec.FindSet() then
+                repeat
+                    if Rec.Field2 = Value then
+                        break;
+                until Rec.Next() = 0;
     end;
 
     local procedure InitUI()
