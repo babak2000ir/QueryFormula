@@ -1,4 +1,4 @@
-enum 51102 "Value Type TPE"
+enum 51103 "Value Type Statement TPE"
 {
     Extensible = true;
 
@@ -13,5 +13,9 @@ enum 51102 "Value Type TPE"
     value(2; FormulaParameter)
     {
         Caption = 'Formula Parameter';
+    }
+    value(3; QueryFormula)
+    {
+        Caption = 'Query Formula';
     }
 }

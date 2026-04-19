@@ -49,4 +49,15 @@ page 51100 "Query Formula List TPE"
             }
         }
     }
+
+    procedure SetRecord(Value: Text[250])
+    begin
+        if Rec.FindFirst() then;
+        if Value <> '' then
+            if Rec.FindSet() then
+                repeat
+                    if Rec."Code" = Value then
+                        exit;
+                until Rec.Next() = 0;
+    end;
 }

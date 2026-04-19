@@ -95,13 +95,19 @@ codeunit 51103 "General Functions TPE"
         end;
     end;
 
+    procedure LookupValueFormulaParameter(var Value: Text[250])
+    begin
+        this.LookupValueFormulaParameter('', Value);
+    end;
+
     procedure LookupValueFormulaParameter(QueryFormulaCode: Code[20]; var Value: Text[250])
     var
         QueryFormulaParameter: Record "Query Formula Parameter TPE";
         QueryFormulaParamLookup: Page "Query Formula Param Lookup TPE";
     begin
         QueryFormulaParameter.Reset();
-        QueryFormulaParameter.SetRange("Query Formula Code", QueryFormulaCode);
+        if QueryFormulaCode <> '' then
+            QueryFormulaParameter.SetRange("Query Formula Code", QueryFormulaCode);
         if not QueryFormulaParameter.IsEmpty then begin
             QueryFormulaParamLookup.SetTableView(QueryFormulaParameter);
             if Value <> '' then begin
@@ -114,6 +120,19 @@ codeunit 51103 "General Functions TPE"
                 QueryFormulaParamLookup.GetRecord(QueryFormulaParameter);
                 Value := QueryFormulaParameter."Parameter Code";
             end;
+        end;
+    end;
+
+    procedure LookupValueQueryFormula(var Value: Text[250])
+    var
+        QueryFormula: Record "Query Formula TPE";
+        QueryFormulaList: Page "Query Formula List TPE";
+    begin
+        QueryFormulaList.LookupMode(true);
+        QueryFormulaList.SetRecord(Value);
+        if QueryFormulaList.RunModal() = Action::LookupOK then begin
+            QueryFormulaList.GetRecord(QueryFormula);
+            Value := QueryFormula."Code";
         end;
     end;
 }

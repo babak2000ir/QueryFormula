@@ -27,4 +27,29 @@ page 51102 "Query Formula Param Sub TPE"
             }
         }
     }
+
+    actions
+    {
+        area(Processing)
+        {
+            action("GetFilters")
+            {
+                ApplicationArea = All;
+                Caption = 'Get Filters';
+                Image = Filter;
+                ToolTip = 'Get Filters';
+                trigger OnAction()
+                begin
+                    Message(Rec.GetFilters());
+                end;
+            }
+        }
+    }
+
+    procedure SetFilter(pQueryFormulaCode: Code[20])
+    begin
+        Rec.Reset();
+        Rec.SetRange("Query Formula Code", pQueryFormulaCode);
+        CurrPage.Update();
+    end;
 }

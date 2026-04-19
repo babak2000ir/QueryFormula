@@ -1,5 +1,6 @@
 page 51108 "Query Formula Exec. Steps TPE"
 {
+    AutoSplitKey = true;
     Caption = 'Query Formula Execution Steps';
     PageType = ListPart;
     SourceTable = "Query Formula Exec. Step TPE";
@@ -10,59 +11,36 @@ page 51108 "Query Formula Exec. Steps TPE"
         {
             repeater(Control1)
             {
-                IndentationColumn = Rec."Indentation Level";
-                IndentationControls = "Query Formula Code";
                 field("Query Formula Execution Code"; Rec."Query Formula Execution Code")
                 {
                     ApplicationArea = All;
-                    Style = Strong;
-                    StyleExpr = Rec."Indentation Level" = 0;
                     Visible = false;
                 }
                 field("Line No."; Rec."Line No.")
                 {
                     ApplicationArea = All;
-                    Visible = false;
                 }
-                field("Parent Line No."; Rec."Parent Line No.")
+                field("Variable Code"; Rec."Variable Code")
                 {
                     ApplicationArea = All;
-                    Visible = false;
                 }
-                field("Query Formula Code"; Rec."Query Formula Code")
+                field("Statement Type"; Rec."Statement Type")
                 {
                     ApplicationArea = All;
-                    Style = Strong;
-                    StyleExpr = Rec."Indentation Level" = 0;
                 }
-                field("Parameter Name"; Rec."Parameter Name")
+                field(Statement; Rec.Statement)
                 {
                     ApplicationArea = All;
-                    Editable = false;
-                }
-                field("Value Query"; Rec."Value Query")
-                {
-                    ApplicationArea = All;
-                    Editable = Rec."Indentation Level" > 0;
-                }
-                field(Value; Rec.Value)
-                {
-                    ApplicationArea = All;
-                    Editable = Rec."Indentation Level" > 0;
                 }
             }
         }
     }
 
-    trigger OnAfterGetCurrRecord()
+    procedure GetQueryCode(): Code[20]
     begin
-        CurrPage.Update(false);
+        if Rec."Statement Type" = Rec."Statement Type"::QueryFormula then
+            exit(Rec.Statement)
+        else
+            exit('');
     end;
-
-    /* trigger OnDeleteRecord(): Boolean
-    begin
-        if not Confirm('This will delete all lines on the same level and lower. Are you sure?') then
-            exit(false);
-        exit(true);
-    end; */
 }

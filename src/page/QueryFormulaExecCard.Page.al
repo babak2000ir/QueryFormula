@@ -21,27 +21,60 @@ page 51113 "Query Formula Exec. Card TPE"
                     ApplicationArea = All;
                 }
             }
-            part(QueryFormulaExecSteps; "Query Formula Exec. Steps TPE")
+            group(Steps)
             {
-                ApplicationArea = All;
-                SubPageLink = "Query Formula Execution Code" = field("Code");
+                part(QueryFormulaExecSteps; "Query Formula Exec. Steps TPE")
+                {
+                    ApplicationArea = All;
+                    SubPageLink = "Query Formula Execution Code" = field("Code");
+                }
+                part(QueryFormulaParameters; "Query Formula Param Sub TPE")
+                {
+                    ApplicationArea = All;
+                    UpdatePropagation = Both;
+                }
             }
+
         }
-
     }
-
     actions
     {
         area(Processing)
         {
-            action(ActionName)
+            action(SetTargetFilter1)
             {
                 ApplicationArea = All;
+                Image = SetPriorities;
+                Promoted = true;
+                PromotedCategory = Process;
+                PromotedIsBig = true;
                 trigger OnAction()
                 begin
-
+                    CurrPage.QueryFormulaParameters.Page.SetFilter('');
+                end;
+            }
+            action(SetTargetFilter2)
+            {
+                ApplicationArea = All;
+                Image = SetPriorities;
+                Promoted = true;
+                PromotedCategory = Process;
+                PromotedIsBig = true;
+                trigger OnAction()
+                begin
+                    CurrPage.QueryFormulaParameters.Page.SetFilter('HIGHSALES');
                 end;
             }
         }
     }
+
+    trigger OnAfterGetCurrRecord()
+    begin
+        CurrPage.QueryFormulaParameters.Page.SetFilter(CurrPage.QueryFormulaExecSteps.Page.GetQueryCode());
+    end;
+
+    trigger OnOpenPage()
+    begin
+        CurrPage.QueryFormulaParameters.Page.SetFilter('');
+    end;
 }

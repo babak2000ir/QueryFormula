@@ -87,19 +87,19 @@ codeunit 51102 "Query Formula Management TPE"
         Value1 := '';
         Value2 := '';
 
-        if (QueryFormulaFilter."Value 1 Type" = "Value Type TPE"::SpecialFormula) or (QueryFormulaFilter."Value 2 Type" = "Value Type TPE"::SpecialFormula) then
+        if (QueryFormulaFilter."Value 1 Type" = "Value Type Statement TPE"::SpecialFormula) or (QueryFormulaFilter."Value 2 Type" = "Value Type filter TPE"::SpecialFormula) then
             SpecialFormulaManagement.GetSpecialFormulas(SpecialFormula);
 
         Case QueryFormulaFilter."Value 1 Type" of
-            "Value Type TPE"::Const:
+            "Value Type Filter TPE"::Const:
                 if QueryFormulaFilter."Value 1" = '' then
                     this.Log('Query formula filter has empty value 1 for field ID %1.', Format(QueryFormulaFilter."Field ID", 0, 9))
                 else
                     Value1 := QueryFormulaFilter."Value 1";
-            "Value Type TPE"::FormulaParameter:
+            "Value Type Filter TPE"::FormulaParameter:
                 if (QueryFormulaFilter."Value 1" = '') or not this.GetParameterValue(QueryFormulaFilter."Value 1", Value1) then
                     this.Log('Query formula filter has empty or invalid parameter name for field ID %1.', Format(QueryFormulaFilter."Field ID", 0, 9));
-            "Value Type TPE"::SpecialFormula:
+            "Value Type Filter TPE"::SpecialFormula:
                 if (QueryFormulaFilter."Value 1" = '') or not SpecialFormula.Get(QueryFormulaFilter."Value 1") then
                     this.Log('Query formula filter has invalid special formula name for field ID %1.', Format(QueryFormulaFilter."Field ID", 0, 9))
                 else
@@ -108,15 +108,15 @@ codeunit 51102 "Query Formula Management TPE"
 
         if QueryFormulaFilter."Filter Type" = "Filter Type TPE"::Between then
             Case QueryFormulaFilter."Value 2 Type" of
-                "Value Type TPE"::Const:
+                "Value Type Filter TPE"::Const:
                     if QueryFormulaFilter."Value 2" = '' then
                         this.Log('Query formula filter has empty value 2 for Between filter type for field ID %1.', Format(QueryFormulaFilter."Field ID", 0, 9))
                     else
                         Value2 := QueryFormulaFilter."Value 2";
-                "Value Type TPE"::FormulaParameter:
+                "Value Type Filter TPE"::FormulaParameter:
                     if (QueryFormulaFilter."Value 2" = '') or not this.GetParameterValue(QueryFormulaFilter."Value 2", Value2) then
                         this.Log('Query formula filter has empty or invalid parameter name for field ID %1.', Format(QueryFormulaFilter."Field ID", 0, 9));
-                "Value Type TPE"::SpecialFormula:
+                "Value Type Filter TPE"::SpecialFormula:
                     if (QueryFormulaFilter."Value 2" = '') or not SpecialFormula.Get(QueryFormulaFilter."Value 2") then
                         this.Log('Query formula filter has invalid special formula name for field ID %1.', Format(QueryFormulaFilter."Field ID", 0, 9))
                     else

@@ -17,67 +17,32 @@ table 51104 "Query Formula Exec. Step TPE"
             DataClassification = SystemMetadata;
             ToolTip = 'Specifies the line number for display.';
         }
-        field(10; "Query Formula Code"; Code[20])
+        field(10; "Variable Code"; Code[20])
         {
             DataClassification = SystemMetadata;
-            TableRelation = "Query Formula TPE".Code;
-            ToolTip = 'Specifies the query formula code. Empty for main lines.';
+            TableRelation = "Query Formula Parameter TPE"."Parameter Code";
+            ToolTip = 'Specifies the variable code. Empty for main lines.';
         }
-        field(11; "Parameter Name"; Code[20])
-        {
-            DataClassification = SystemMetadata;
-            ToolTip = 'Specifies the parameter name. Empty for main lines.';
-        }
-        field(20; "Indentation Level"; Integer)
-        {
-            DataClassification = SystemMetadata;
-            Editable = false;
-            ToolTip = 'Specifies indentation level for display.';
-        }
-        field(21; "Parent Line No."; Integer)
-        {
-            DataClassification = SystemMetadata;
-            Editable = false;
-            ToolTip = 'Specifies the line number of the parent line. Used for display purposes.';
-        }
-        field(30; "Value Query"; Boolean)
+
+        field(20; "Statement Type"; Enum "Value Type Statement TPE")
         {
             DataClassification = SystemMetadata;
             ToolTip = 'Specifies the filter value.';
 
             trigger OnValidate()
             begin
-                if xRec."Value Query" <> Rec."Value Query" then
-                    Rec."Value" := '';
+                if xRec."Statement Type" <> Rec."Statement Type" then
+                    Rec."Statement" := '';
             end;
         }
-        field(31; Value; Text[250])
+        field(21; Statement; Text[250])
         {
             DataClassification = SystemMetadata;
             ToolTip = 'Specifies the filter value.';
 
             trigger OnLookup()
-            var
-                QueryFormula: Record "Query Formula TPE";
-                QueryFormulaLookup: Page "Query Formula Lookup TPE";
             begin
-                if "Value Query" then begin
-                    QueryFormula.Reset();
-                    if not QueryFormula.IsEmpty then begin
-                        QueryFormulaLookup.SetTableView(QueryFormula);
-                        QueryFormulaLookup.LookupMode(true);
-
-                        if QueryFormulaLookup.RunModal() = Action::LookupOK then begin
-                            QueryFormulaLookup.GetRecord(QueryFormula);
-                            Rec.Validate("Value", QueryFormula.Code);
-                        end;
-                    end;
-                end;
-            end;
-
-            trigger OnValidate()
-            begin
-                //this.InsertParameterLines(xRec, Rec);
+                this.LookupValue(Rec, Rec."Statement");
             end;
         }
     }
@@ -90,154 +55,30 @@ table 51104 "Query Formula Exec. Step TPE"
         }
     }
 
-    trigger OnInsert()
-    var
-        ExecutionLine: Record "Query Formula Exec. Step TPE";
-    begin
-        if Rec."Query Formula Execution Code" = '' then
-            Error('Execution Code must have a value.');
-
-        ExecutionLine.Reset();
-        ExecutionLine.SetRange("Query Formula Execution Code", Rec."Query Formula Execution Code");
-        ExecutionLine.SetRange("Indentation Level", 0);
-        if not ExecutionLine.IsEmpty then
-            Error('Only one main line with indentation level 0 is allowed for each execution code.');
-
-        Rec."Parameter Name" := '';
-        Rec."Indentation Level" := 0;
-        Rec.SetLineNo();
-
-        if "Query Formula Code" <> '' then
-            this.InsertParameterLines(Rec);
-    end;
-
-    trigger OnModify()
-    begin
-        this.InsertParameterLines(xRec, Rec)
-    end;
-
-    trigger OnDelete()
-    var
-        ExecutionLine: Record "Query Formula Exec. Step TPE";
-        ExecutionLine2: Record "Query Formula Exec. Step TPE";
-    begin
-
-        ExecutionLine.Reset();
-        ExecutionLine.SetRange("Query Formula Execution Code", Rec."Query Formula Execution Code");
-        ExecutionLine.SetRange("Parent Line No.", Rec."Line No.");
-        ExecutionLine.DeleteAll(true);
-        /*         if Rec."Indentation Level" = 0 then begin
-                    ExecutionLine.Reset();
-                    ExecutionLine.SetRange("Query Formula Execution Code", Rec."Query Formula Execution Code");
-                    ExecutionLine.DeleteAll(true);
-                end else begin
-                    case Rec."Indentation Level" of
-                        1:
-                            begin
-                                // Delete the Parent Lines Value
-                                ExecutionLine.Reset();
-                                ExecutionLine.SetRange("Query Formula Execution Code", Rec."Query Formula Execution Code");
-                                ExecutionLine.SetRange("Line No.", Rec."Parent Line No.");
-                                if ExecutionLine.FindFirst() then begin
-                                    ExecutionLine."Query Formula Code" := '';
-                                    ExecutionLine.Modify();
-                                end;
-                            end;
-                        else begin
-                            // Delete the Parent Lines Value
-                            ExecutionLine.Reset();
-                            ExecutionLine.SetRange("Query Formula Execution Code", Rec."Query Formula Execution Code");
-                            ExecutionLine.SetRange("Line No.", Rec."Parent Line No.");
-                            if ExecutionLine.FindFirst() then begin
-                                ExecutionLine.Value := '';
-                                ExecutionLine.Modify();
-                            end;
-                        end;
-                    end;
-
-                    ExecutionLine.Reset();
-                    ExecutionLine.SetRange("Query Formula Execution Code", Rec."Query Formula Execution Code");
-                    ExecutionLine.SetRange("Query Formula Code", Rec."Query Formula Code");
-                    ExecutionLine.SetRange("Parent Line No.", Rec."Parent Line No.");
-                    if ExecutionLine.FindSet() then
-                        repeat
-                            ExecutionLine2.Reset();
-                            ExecutionLine2.SetRange("Query Formula Execution Code", ExecutionLine."Query Formula Execution Code");
-                            ExecutionLine2.SetRange("Parent Line No.", ExecutionLine."Line No.");
-                            ExecutionLine2.DeleteAll(true);
-
-                            ExecutionLine.Delete();
-                        until ExecutionLine.Next() = 0;
-                end; */
-    end;
-
     procedure SetLineNo()
     var
         lQueryFormulaExecSteps: Record "Query Formula Exec. Step TPE";
     begin
         lQueryFormulaExecSteps.Reset();
         if lQueryFormulaExecSteps.FindLast() then
-            Rec."Line No." := lQueryFormulaExecSteps."Line No." + 100000
+            Rec."Line No." := lQueryFormulaExecSteps."Line No." + 10000
         else
-            Rec."Line No." := 100000;
+            Rec."Line No." := 10000;
     end;
 
-    procedure SetLineNo(ParentQueryFormulaExecSteps: Record "Query Formula Exec. Step TPE")
+    procedure LookupValue(QueryFormulaExecStepTPE: Record "Query Formula Exec. Step TPE"; var Value: Text[250])
     var
-        lQueryFormulaExecSteps: Record "Query Formula Exec. Step TPE";
-        Seed: Integer;
+        GeneralFunctions: Codeunit "General Functions TPE";
     begin
-        Seed := 100000 / (Power(10, ParentQueryFormulaExecSteps."Indentation Level" + 1));
-        lQueryFormulaExecSteps.Reset();
-        lQueryFormulaExecSteps.SetRange("Query Formula Execution Code", ParentQueryFormulaExecSteps."Query Formula Execution Code");
-        lQueryFormulaExecSteps.SetRange("Parent Line No.", ParentQueryFormulaExecSteps."Line No.");
-        if lQueryFormulaExecSteps.FindLast() then
-            Rec."Line No." := lQueryFormulaExecSteps."Line No." + Seed
-        else
-            Rec."Line No." := ParentQueryFormulaExecSteps."Line No." + Seed;
-    end;
-
-    procedure InsertParameterLines(xQueryFormulaExecStep: Record "Query Formula Exec. Step TPE"; pQueryFormulaExecStep: Record "Query Formula Exec. Step TPE")
-    begin
-        if pQueryFormulaExecStep."Indentation Level" = 0 then
-            if (xRec."Query Formula Code" <> '') and (Rec."Query Formula Code" <> xRec."Query Formula Code") then
-                if not Confirm('This will remove all existing parameter lines for query formula code %1 and insert new ones based on the new query formula code. Are you sure?', false, xRec."Query Formula Code") then
-                    exit;
-        this.DeleteParameterLines(xRec);
-        this.InsertParameterLines(Rec);
-    end;
-
-    procedure DeleteParameterLines(pQueryFormulaExecStep: Record "Query Formula Exec. Step TPE")
-    var
-        ExecutionLine: Record "Query Formula Exec. Step TPE";
-    begin
-        ExecutionLine.Reset();
-        ExecutionLine.SetRange("Query Formula Execution Code", pQueryFormulaExecStep."Query Formula Execution Code");
-        ExecutionLine.SetRange("Parent Line No.", pQueryFormulaExecStep."Line No.");
-        ExecutionLine.DeleteAll(true);
-    end;
-
-    procedure InsertParameterLines(pQueryFormulaExecStep: Record "Query Formula Exec. Step TPE")
-    var
-        QueryFormulaParameter: Record "Query Formula Parameter TPE";
-        ExecutionLine: Record "Query Formula Exec. Step TPE";
-        lQueryFormulaCode: Code[20];
-    begin
-        lQueryFormulaCode := pQueryFormulaExecStep."Indentation Level" = 0 ? pQueryFormulaExecStep."Query Formula Code" : pQueryFormulaExecStep.Value;
-
-        QueryFormulaParameter.Reset();
-        QueryFormulaParameter.SetRange("Query Formula Code", lQueryFormulaCode);
-        QueryFormulaParameter.SetFilter("Parameter Code", '<>_*');
-        if QueryFormulaParameter.FindSet() then
-            repeat
-                ExecutionLine.Init();
-                ExecutionLine."Query Formula Execution Code" := pQueryFormulaExecStep."Query Formula Execution Code";
-                ExecutionLine.SetLineNo(pQueryFormulaExecStep);
-                ExecutionLine."Query Formula Code" := lQueryFormulaCode;
-                ExecutionLine."Parameter Name" := QueryFormulaParameter."Parameter Code";
-                ExecutionLine."Indentation Level" := pQueryFormulaExecStep."Indentation Level" + 1;
-                ExecutionLine."Parent Line No." := pQueryFormulaExecStep."Line No.";
-                ExecutionLine.Insert(false);
-            until QueryFormulaParameter.Next() = 0;
+        case QueryFormulaExecStepTPE."Statement Type" of
+            "Value Type Statement TPE"::Const:
+                GeneralFunctions.LookupValueFields(QueryFormulaExecStepTPE.RecordId.TableNo, QueryFormulaExecStepTPE.FieldNo(Statement), Value);
+            "Value Type Statement TPE"::SpecialFormula:
+                GeneralFunctions.LookupValueSpecialFormula(Value);
+            "Value Type Statement TPE"::FormulaParameter:
+                GeneralFunctions.LookupValueFormulaParameter(Value);
+            "Value Type Statement TPE"::QueryFormula:
+                GeneralFunctions.LookupValueQueryFormula(Value);
+        end;
     end;
 }

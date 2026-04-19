@@ -63,7 +63,7 @@ table 51102 "Query Formula Filter TPE"
             DataClassification = SystemMetadata;
             ToolTip = 'Specifies the filter type.';
         }
-        field(10; "Value 1 Type"; Enum "Value Type TPE")
+        field(10; "Value 1 Type"; Enum "Value Type Filter TPE")
         {
             DataClassification = SystemMetadata;
             ToolTip = 'Specifies the filter value.';
@@ -84,7 +84,7 @@ table 51102 "Query Formula Filter TPE"
                 this.LookupValue(Rec, Rec."Value 1 Type", Rec."Value 1");
             end;
         }
-        field(12; "Value 2 Type"; Enum "Value Type TPE")
+        field(12; "Value 2 Type"; Enum "Value Type Filter TPE")
         {
             DataClassification = SystemMetadata;
             ToolTip = 'Specifies the second filter value.';
@@ -121,18 +121,18 @@ table 51102 "Query Formula Filter TPE"
             Error('Field ID must not be 0. Please select a valid field before saving.');
     end;
 
-    procedure LookupValue(QueryFormulaFilter: Record "Query Formula Filter TPE"; ValueType: Enum "Value Type TPE"; var Value: Text[250])
+    procedure LookupValue(QueryFormulaFilter: Record "Query Formula Filter TPE"; ValueType: Enum "Value Type Filter TPE"; var Value: Text[250])
     var
         QueryFormula: Record "Query Formula TPE";
         GeneralFunctions: Codeunit "General Functions TPE";
     begin
         QueryFormula.Get(QueryFormulaFilter."Query Formula Code");
         case ValueType of
-            "Value Type TPE"::Const:
+            "Value Type Filter TPE"::Const:
                 GeneralFunctions.LookupValueFields(QueryFormula."Table ID", QueryFormulaFilter."Field ID", Value);
-            "Value Type TPE"::SpecialFormula:
+            "Value Type Filter TPE"::SpecialFormula:
                 GeneralFunctions.LookupValueSpecialFormula(Value);
-            "Value Type TPE"::FormulaParameter:
+            "Value Type Filter TPE"::FormulaParameter:
                 GeneralFunctions.LookupValueFormulaParameter(QueryFormula."Code", Value);
         end;
     end;
