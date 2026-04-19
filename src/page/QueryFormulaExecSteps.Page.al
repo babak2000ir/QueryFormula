@@ -1,7 +1,6 @@
 page 51108 "Query Formula Exec. Steps TPE"
 {
     Caption = 'Query Formula Execution Steps';
-    CardPageId = "Query Formula Exec. Steps TPE";
     PageType = ListPart;
     SourceTable = "Query Formula Exec. Step TPE";
 
@@ -55,10 +54,15 @@ page 51108 "Query Formula Exec. Steps TPE"
         }
     }
 
-    trigger OnDeleteRecord(): Boolean
+    trigger OnAfterGetCurrRecord()
+    begin
+        CurrPage.Update(false);
+    end;
+
+    /* trigger OnDeleteRecord(): Boolean
     begin
         if not Confirm('This will delete all lines on the same level and lower. Are you sure?') then
             exit(false);
         exit(true);
-    end;
+    end; */
 }

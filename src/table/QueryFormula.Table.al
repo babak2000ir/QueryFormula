@@ -98,9 +98,4 @@ table 51100 "Query Formula TPE"
             Clustered = true;
         }
     }
-
-    fieldgroups
-    {
-        // Add changes to field groups here
-    }
 }

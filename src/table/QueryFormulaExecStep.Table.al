@@ -15,7 +15,6 @@ table 51104 "Query Formula Exec. Step TPE"
         field(2; "Line No."; Integer)
         {
             DataClassification = SystemMetadata;
-            Editable = false;
             ToolTip = 'Specifies the line number for display.';
         }
         field(10; "Query Formula Code"; Code[20])
@@ -78,7 +77,7 @@ table 51104 "Query Formula Exec. Step TPE"
 
             trigger OnValidate()
             begin
-                this.InsertParameterLines(xRec, Rec);
+                //this.InsertParameterLines(xRec, Rec);
             end;
         }
     }
@@ -123,92 +122,89 @@ table 51104 "Query Formula Exec. Step TPE"
         ExecutionLine2: Record "Query Formula Exec. Step TPE";
     begin
 
-        if Rec."Indentation Level" = 0 then begin
-            ExecutionLine.Reset();
-            ExecutionLine.SetRange("Query Formula Execution Code", Rec."Query Formula Execution Code");
-            ExecutionLine.DeleteAll(true);
-        end else begin
-            case Rec."Indentation Level" of
-                1:
-                    begin
-                        // Delete the Parent Lines Value
-                        ExecutionLine.Reset();
-                        ExecutionLine.SetRange("Query Formula Execution Code", Rec."Query Formula Execution Code");
-                        ExecutionLine.SetRange("Line No.", Rec."Parent Line No.");
-                        if ExecutionLine.FindFirst() then begin
-                            ExecutionLine."Query Formula Code" := '';
-                            ExecutionLine.Modify();
-                        end;
-                    end;
-                else begin
-                    // Delete the Parent Lines Value
+        ExecutionLine.Reset();
+        ExecutionLine.SetRange("Query Formula Execution Code", Rec."Query Formula Execution Code");
+        ExecutionLine.SetRange("Parent Line No.", Rec."Line No.");
+        ExecutionLine.DeleteAll(true);
+        /*         if Rec."Indentation Level" = 0 then begin
                     ExecutionLine.Reset();
                     ExecutionLine.SetRange("Query Formula Execution Code", Rec."Query Formula Execution Code");
-                    ExecutionLine.SetRange("Line No.", Rec."Parent Line No.");
-                    if ExecutionLine.FindFirst() then begin
-                        ExecutionLine.Value := '';
-                        ExecutionLine.Modify();
+                    ExecutionLine.DeleteAll(true);
+                end else begin
+                    case Rec."Indentation Level" of
+                        1:
+                            begin
+                                // Delete the Parent Lines Value
+                                ExecutionLine.Reset();
+                                ExecutionLine.SetRange("Query Formula Execution Code", Rec."Query Formula Execution Code");
+                                ExecutionLine.SetRange("Line No.", Rec."Parent Line No.");
+                                if ExecutionLine.FindFirst() then begin
+                                    ExecutionLine."Query Formula Code" := '';
+                                    ExecutionLine.Modify();
+                                end;
+                            end;
+                        else begin
+                            // Delete the Parent Lines Value
+                            ExecutionLine.Reset();
+                            ExecutionLine.SetRange("Query Formula Execution Code", Rec."Query Formula Execution Code");
+                            ExecutionLine.SetRange("Line No.", Rec."Parent Line No.");
+                            if ExecutionLine.FindFirst() then begin
+                                ExecutionLine.Value := '';
+                                ExecutionLine.Modify();
+                            end;
+                        end;
                     end;
-                end;
-            end;
 
-            ExecutionLine.Reset();
-            ExecutionLine.SetRange("Query Formula Execution Code", Rec."Query Formula Execution Code");
-            ExecutionLine.SetRange("Query Formula Code", Rec."Query Formula Code");
-            ExecutionLine.SetRange("Parent Line No.", Rec."Parent Line No.");
-            if ExecutionLine.FindSet() then
-                repeat
-                    ExecutionLine2.Reset();
-                    ExecutionLine2.SetRange("Query Formula Execution Code", ExecutionLine."Query Formula Execution Code");
-                    ExecutionLine2.SetRange("Parent Line No.", ExecutionLine."Line No.");
-                    ExecutionLine2.DeleteAll(true);
+                    ExecutionLine.Reset();
+                    ExecutionLine.SetRange("Query Formula Execution Code", Rec."Query Formula Execution Code");
+                    ExecutionLine.SetRange("Query Formula Code", Rec."Query Formula Code");
+                    ExecutionLine.SetRange("Parent Line No.", Rec."Parent Line No.");
+                    if ExecutionLine.FindSet() then
+                        repeat
+                            ExecutionLine2.Reset();
+                            ExecutionLine2.SetRange("Query Formula Execution Code", ExecutionLine."Query Formula Execution Code");
+                            ExecutionLine2.SetRange("Parent Line No.", ExecutionLine."Line No.");
+                            ExecutionLine2.DeleteAll(true);
 
-                    ExecutionLine.Delete(true);
-                until ExecutionLine.Next() = 0;
-        end;
+                            ExecutionLine.Delete();
+                        until ExecutionLine.Next() = 0;
+                end; */
     end;
 
     procedure SetLineNo()
+    var
+        lQueryFormulaExecSteps: Record "Query Formula Exec. Step TPE";
     begin
-        Rec.SetLineNo('', '');
+        lQueryFormulaExecSteps.Reset();
+        if lQueryFormulaExecSteps.FindLast() then
+            Rec."Line No." := lQueryFormulaExecSteps."Line No." + 100000
+        else
+            Rec."Line No." := 100000;
     end;
 
-    procedure SetLineNo(QueryFormulaExecCode: Code[20])
-    begin
-        Rec.SetLineNo(QueryFormulaExecCode, '');
-    end;
-
-    procedure SetLineNo(QueryFormulaExecCode: Code[20]; QueryFormulaCode: Code[20])
+    procedure SetLineNo(ParentQueryFormulaExecSteps: Record "Query Formula Exec. Step TPE")
     var
         lQueryFormulaExecSteps: Record "Query Formula Exec. Step TPE";
         Seed: Integer;
     begin
-        Seed := 10000;
+        Seed := 100000 / (Power(10, ParentQueryFormulaExecSteps."Indentation Level" + 1));
         lQueryFormulaExecSteps.Reset();
-
-        if QueryFormulaExecCode <> '' then begin
-            lQueryFormulaExecSteps.SetRange("Query Formula Execution Code", QueryFormulaExecCode);
-            Seed := 1000;
-        end;
-
-        if QueryFormulaCode <> '' then begin
-            lQueryFormulaExecSteps.SetRange("Query Formula Code", QueryFormulaCode);
-            Seed := 100;
-        end;
-
+        lQueryFormulaExecSteps.SetRange("Query Formula Execution Code", ParentQueryFormulaExecSteps."Query Formula Execution Code");
+        lQueryFormulaExecSteps.SetRange("Parent Line No.", ParentQueryFormulaExecSteps."Line No.");
         if lQueryFormulaExecSteps.FindLast() then
             Rec."Line No." := lQueryFormulaExecSteps."Line No." + Seed
         else
-            Rec."Line No." := Seed;
+            Rec."Line No." := ParentQueryFormulaExecSteps."Line No." + Seed;
     end;
 
     procedure InsertParameterLines(xQueryFormulaExecStep: Record "Query Formula Exec. Step TPE"; pQueryFormulaExecStep: Record "Query Formula Exec. Step TPE")
     begin
-        if (xRec."Query Formula Code" <> '') and (Rec."Query Formula Code" <> xRec."Query Formula Code") then
-            if Confirm('This will remove all existing parameter lines for query formula code %1 and insert new ones based on the new query formula code. Are you sure?', false, xRec."Query Formula Code") then begin
-                this.DeleteParameterLines(xRec);
-                this.InsertParameterLines(Rec);
-            end;
+        if pQueryFormulaExecStep."Indentation Level" = 0 then
+            if (xRec."Query Formula Code" <> '') and (Rec."Query Formula Code" <> xRec."Query Formula Code") then
+                if not Confirm('This will remove all existing parameter lines for query formula code %1 and insert new ones based on the new query formula code. Are you sure?', false, xRec."Query Formula Code") then
+                    exit;
+        this.DeleteParameterLines(xRec);
+        this.InsertParameterLines(Rec);
     end;
 
     procedure DeleteParameterLines(pQueryFormulaExecStep: Record "Query Formula Exec. Step TPE")
@@ -217,7 +213,6 @@ table 51104 "Query Formula Exec. Step TPE"
     begin
         ExecutionLine.Reset();
         ExecutionLine.SetRange("Query Formula Execution Code", pQueryFormulaExecStep."Query Formula Execution Code");
-        ExecutionLine.SetRange("Query Formula Code", pQueryFormulaExecStep."Query Formula Code");
         ExecutionLine.SetRange("Parent Line No.", pQueryFormulaExecStep."Line No.");
         ExecutionLine.DeleteAll(true);
     end;
@@ -226,39 +221,23 @@ table 51104 "Query Formula Exec. Step TPE"
     var
         QueryFormulaParameter: Record "Query Formula Parameter TPE";
         ExecutionLine: Record "Query Formula Exec. Step TPE";
+        lQueryFormulaCode: Code[20];
     begin
-        Case pQueryFormulaExecStep."Indentation Level" of
-            0:
-                begin
-                    QueryFormulaParameter.Reset();
-                    QueryFormulaParameter.SetRange("Query Formula Code", pQueryFormulaExecStep."Query Formula Code");
-                    if QueryFormulaParameter.FindSet() then
-                        repeat
-                            ExecutionLine.Init();
-                            ExecutionLine."Query Formula Execution Code" := pQueryFormulaExecStep."Query Formula Execution Code";
-                            ExecutionLine.SetLineNo(pQueryFormulaExecStep."Query Formula Execution Code");
-                            ExecutionLine."Query Formula Code" := pQueryFormulaExecStep."Query Formula Code";
-                            ExecutionLine."Parameter Name" := QueryFormulaParameter."Parameter Code";
-                            ExecutionLine."Indentation Level" := 1;
-                            ExecutionLine."Parent Line No." := pQueryFormulaExecStep."Line No.";
-                            ExecutionLine.Insert(false);
-                        until QueryFormulaParameter.Next() = 0;
-                end;
-            else begin
-                QueryFormulaParameter.Reset();
-                QueryFormulaParameter.SetRange("Query Formula Code", pQueryFormulaExecStep.Value);
-                if QueryFormulaParameter.FindSet() then
-                    repeat
-                        ExecutionLine.Init();
-                        ExecutionLine."Query Formula Execution Code" := pQueryFormulaExecStep."Query Formula Execution Code";
-                        ExecutionLine.SetLineNo(pQueryFormulaExecStep."Query Formula Execution Code", pQueryFormulaExecStep."Query Formula Code");
-                        ExecutionLine."Query Formula Code" := pQueryFormulaExecStep.Value;
-                        ExecutionLine."Parameter Name" := QueryFormulaParameter."Parameter Code";
-                        ExecutionLine."Indentation Level" := pQueryFormulaExecStep."Indentation Level" + 1;
-                        ExecutionLine."Parent Line No." := pQueryFormulaExecStep."Line No.";
-                        ExecutionLine.Insert(false);
-                    until QueryFormulaParameter.Next() = 0;
-            end;
-        End;
+        lQueryFormulaCode := pQueryFormulaExecStep."Indentation Level" = 0 ? pQueryFormulaExecStep."Query Formula Code" : pQueryFormulaExecStep.Value;
+
+        QueryFormulaParameter.Reset();
+        QueryFormulaParameter.SetRange("Query Formula Code", lQueryFormulaCode);
+        QueryFormulaParameter.SetFilter("Parameter Code", '<>_*');
+        if QueryFormulaParameter.FindSet() then
+            repeat
+                ExecutionLine.Init();
+                ExecutionLine."Query Formula Execution Code" := pQueryFormulaExecStep."Query Formula Execution Code";
+                ExecutionLine.SetLineNo(pQueryFormulaExecStep);
+                ExecutionLine."Query Formula Code" := lQueryFormulaCode;
+                ExecutionLine."Parameter Name" := QueryFormulaParameter."Parameter Code";
+                ExecutionLine."Indentation Level" := pQueryFormulaExecStep."Indentation Level" + 1;
+                ExecutionLine."Parent Line No." := pQueryFormulaExecStep."Line No.";
+                ExecutionLine.Insert(false);
+            until QueryFormulaParameter.Next() = 0;
     end;
 }
