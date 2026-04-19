@@ -121,116 +121,20 @@ table 51102 "Query Formula Filter TPE"
             Error('Field ID must not be 0. Please select a valid field before saving.');
     end;
 
-
     procedure LookupValue(QueryFormulaFilter: Record "Query Formula Filter TPE"; ValueType: Enum "Value Type TPE"; var Value: Text[250])
     var
-        QueryFormulaParameter: Record "Query Formula Parameter TPE";
-        SpecialFormula: Record "Special Formula TPE";
         QueryFormula: Record "Query Formula TPE";
-        Field: Record Field;
-        GeneralTableBuffer: Record "General Table Buffer TPE";
-        QueryFormulaParamLookup: Page "Query Formula Param Lookup TPE";
-        SpecialFormulaList: Page "Special Formula List TPE";
-        DateTimeDialog: Page "Date-Time Dialog TPE";
-        GeneralTableLookup: Page "General Table Lookup TPE";
+        GeneralFunctions: Codeunit "General Functions TPE";
     begin
+        QueryFormula.Get(QueryFormulaFilter."Query Formula Code");
         case ValueType of
             "Value Type TPE"::Const:
-                begin
-                    QueryFormula.Get(QueryFormulaFilter."Query Formula Code");
-                    Field.Get(QueryFormula."Table ID", QueryFormulaFilter."Field ID");
-                    case Field.Type of
-                        //Field.Type::TableFilter:
-                        //Field.Type::RecordID:
-                        //Field.Type::OemText:
-                        //Field.Type::Media:
-                        //Field.Type::MediaSet:
-                        //Field.Type::Binary:
-                        //Field.Type::BLOB:
-                        //Field.Type::OemCode:
-
-                        Field.Type::DateFormula,
-                        Field.Type::Decimal,
-                        Field.Type::Text,
-                        Field.Type::Boolean,
-                        Field.Type::Integer,
-                        Field.Type::BigInteger,
-                        Field.Type::Duration,
-                        Field.Type::GUID:
-                            Message('Please enter a constant value of type %1.', Field.Type);
-                        Field.Type::DateTime:
-                            begin
-                                Clear(DateTimeDialog);
-                                DateTimeDialog.LookupMode(true);
-                                if DateTimeDialog.RunModal() = Action::LookupOK then
-                                    Value := Format(DateTimeDialog.GetDateTime(), 0, 9);
-                            end;
-                        Field.Type::Date:
-                            begin
-                                Clear(DateTimeDialog);
-                                DateTimeDialog.LookupMode(true);
-                                DateTimeDialog.UseDateOnly();
-                                if DateTimeDialog.RunModal() = Action::LookupOK then
-                                    Value := Format(DateTimeDialog.GetDate(), 0, 9);
-                            end;
-                        Field.Type::Time:
-                            begin
-                                Clear(DateTimeDialog);
-                                DateTimeDialog.LookupMode(true);
-                                DateTimeDialog.UseTimeOnly();
-                                if DateTimeDialog.RunModal() = Action::LookupOK then
-                                    Value := Format(DateTimeDialog.GetTime(), 0, 9);
-                            end;
-                        Field.Type::Code:
-                            if Field.RelationTableNo <> 0 then begin
-                                GeneralTableLookup.LookupMode(true);
-                                GeneralTableLookup.LoadData(Field.RelationTableNo, Value);
-                                GeneralTableLookup.Editable(false);
-                                if GeneralTableLookup.RunModal() = Action::LookupOK then begin
-                                    GeneralTableLookup.GetRecord(GeneralTableBuffer);
-                                    Value := GeneralTableBuffer.Field1;
-                                end;
-                            end;
-                        Field.Type::Option:
-                            begin
-                                GeneralTableLookup.LookupMode(true);
-                                GeneralTableLookup.LoadData(Field.OptionString, Value);
-                                GeneralTableLookup.Editable(false);
-                                if GeneralTableLookup.RunModal() = Action::LookupOK then begin
-                                    GeneralTableLookup.GetRecord(GeneralTableBuffer);
-                                    Value := GeneralTableBuffer.Field2;
-                                end;
-                            end;
-                    end;
-
-                end;
+                GeneralFunctions.LookupValueFields(QueryFormula."Table ID", QueryFormulaFilter."Field ID", Value);
             "Value Type TPE"::SpecialFormula:
-                begin
-                    SpecialFormulaList.LookupMode(true);
-                    SpecialFormulaList.SetRecord(Value);
-                    if SpecialFormulaList.RunModal() = Action::LookupOK then begin
-                        SpecialFormulaList.GetRecord(SpecialFormula);
-                        Value := SpecialFormula."Code";
-                    end;
-                end;
+                GeneralFunctions.LookupValueSpecialFormula(Value);
             "Value Type TPE"::FormulaParameter:
-                begin
-                    QueryFormulaParameter.Reset();
-                    QueryFormulaParameter.SetRange("Query Formula Code", Rec."Query Formula Code");
-                    if not QueryFormulaParameter.IsEmpty then begin
-                        QueryFormulaParamLookup.SetTableView(QueryFormulaParameter);
-                        if Value <> '' then begin
-                            QueryFormulaParameter.SetRange("Parameter Code", Value);
-                            if QueryFormulaParameter.FindFirst() then
-                                QueryFormulaParamLookup.SetRecord(QueryFormulaParameter);
-                        end;
-                        QueryFormulaParamLookup.LookupMode(true);
-                        if QueryFormulaParamLookup.RunModal() = Action::LookupOK then begin
-                            QueryFormulaParamLookup.GetRecord(QueryFormulaParameter);
-                            Value := QueryFormulaParameter."Parameter Code";
-                        end;
-                    end;
-                end;
+                GeneralFunctions.LookupValueFormulaParameter(QueryFormula."Code", Value);
         end;
     end;
+
 }

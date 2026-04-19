@@ -1,10 +1,9 @@
 page 51108 "Query Formula Exec. Steps TPE"
 {
-    ApplicationArea = All;
     Caption = 'Query Formula Execution Steps';
-    PageType = List;
+    CardPageId = "Query Formula Exec. Steps TPE";
+    PageType = ListPart;
     SourceTable = "Query Formula Exec. Step TPE";
-    UsageCategory = Lists;
 
     layout
     {

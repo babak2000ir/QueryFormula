@@ -1,8 +1,6 @@
 table 51103 "Query Formula Execution TPE"
 {
     DataClassification = SystemMetadata;
-    DrillDownPageId = "Query Formula Exec. Steps TPE";
-    LookupPageId = "Query Formula Exec. List TPE";
     fields
     {
         field(1; "Code"; Code[20])

@@ -92,6 +92,11 @@ page 51110 "Date-Time Dialog TPE"
         exit(DateValue);
     end;
 
+    procedure SetTime(NewTime: Time)
+    begin
+        TimeValue := NewTime;
+    end;
+
     /// <summary>
     /// Setter method to initialize the Time on the page.
     /// </summary>
